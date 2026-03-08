@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useStore } from './store/useStore';
 import { startSyncListener } from './services/syncService';
 
@@ -31,7 +31,7 @@ function App() {
   }, [currentUser, users]);
 
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/" element={<Login />} />
 
@@ -44,7 +44,7 @@ function App() {
           <Route path="/admin" element={currentUser === 'Ric' || currentUser === 'Nadine' ? <Admin /> : <Navigate to="/dashboard" />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 

@@ -5,7 +5,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: './', // Ensures relative paths for GitHub Pages deploying
+  base: '/haushaltsbuddy/', // Ensures relative paths for GitHub Pages deploying
   plugins: [
     react(),
     tailwindcss(),
