@@ -13,7 +13,7 @@ import {
     defaultDropAnimationSideEffects
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { DayOfWeek, Task } from '../types';
+import type { DayOfWeek, Task } from '../types';
 import { useStore } from '../store/useStore';
 import { publishEvent } from '../services/syncService';
 import { generateWeeklyPlan } from '../services/generatorService';

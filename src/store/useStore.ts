@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Task, UserProfile, Reward, WallPost, Penalty, UserId, DayOfWeek } from '../types';
+import type { Task, UserProfile, Reward, WallPost, Penalty, UserId, DayOfWeek } from '../types';
 
 interface AppState {
     users: Record<UserId, UserProfile>;

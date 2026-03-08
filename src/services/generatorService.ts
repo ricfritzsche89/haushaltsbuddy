@@ -1,4 +1,4 @@
-import { Task, DayOfWeek, UserId } from '../types';
+import type { Task, DayOfWeek, UserId } from '../types';
 import { useStore } from '../store/useStore';
 
 const DAYS: DayOfWeek[] = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];

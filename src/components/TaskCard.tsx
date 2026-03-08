@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Task } from '../types';
+import type { Task } from '../types';
 import { useStore } from '../store/useStore';
 import { CheckCircle2, Navigation, MessageCircle, Link as LinkIcon, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';

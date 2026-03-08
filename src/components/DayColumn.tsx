@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { DayOfWeek, Task } from '../types';
+import type { DayOfWeek, Task } from '../types';
 import TaskCard from './TaskCard';
 
 interface Props {
