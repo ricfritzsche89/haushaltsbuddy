@@ -1,0 +1,3 @@
+@echo off
+echo Starte Haushaltsbuddy lokal...
+npm run dev
