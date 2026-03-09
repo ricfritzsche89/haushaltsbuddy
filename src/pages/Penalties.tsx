@@ -54,6 +54,8 @@ export default function Penalties() {
     const handleDeletePenalty = (id: string, name: string) => {
         if (window.confirm(`Strafe "${name}" wirklich löschen?`)) {
             deletePenalty(id);
+            publishEvent('PENALTY_REMOVED', { penaltyId: id });
+            toast.success('Strafe gelöscht');
         }
     };
 
