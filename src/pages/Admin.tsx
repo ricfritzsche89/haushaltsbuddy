@@ -1,42 +1,30 @@
-import React, { useState } from 'react';
-import { useStore } from '../store/useStore';
-import { publishEvent } from '../services/syncService';
-import { ShieldAlert, Trash2, Plus, Gift, Smartphone, Save } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { useState } from 'react';
+import { ShieldAlert, Database, Smartphone, Bell, Package } from 'lucide-react';
+import TaskDatabase from '../components/TaskDatabase';
+import AdminShopView from '../components/AdminShopView';
+import AdminPenaltyCard from '../components/AdminPenaltyCard';
+import AdminPushMessageCard from '../components/AdminPushMessageCard';
+import AdminSystemCard from '../components/AdminSystemCard';
+
+type Tab = 'tasks' | 'penalty' | 'message' | 'shop' | 'system';
+
+const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
+    { id: 'tasks', label: 'Aufgaben', icon: <Database size={18} /> },
+    { id: 'penalty', label: 'Sperre', icon: <Smartphone size={18} /> },
+    { id: 'message', label: 'Nachricht', icon: <Bell size={18} /> },
+    { id: 'shop', label: 'Shop', icon: <Package size={18} /> },
+    { id: 'system', label: 'System', icon: <ShieldAlert size={18} /> },
+];
+
+import React from 'react';
 
 export default function Admin() {
-    const { users, penalties, addPenalty } = useStore();
-
-    const [penaltyTarget, setPenaltyTarget] = useState('Tyler');
-    const [penaltyReason, setPenaltyReason] = useState('Zimmer nicht aufgeräumt');
-    const [penaltyDuration, setPenaltyDuration] = useState(60); // minutes
-
-    const handleIssuePenalty = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!penaltyTarget) return;
-
-        const newPenalty = {
-            id: Math.random().toString(36).substr(2, 9),
-            userId: penaltyTarget as any,
-            reason: penaltyReason,
-            durationMinutes: penaltyDuration,
-            timestamp: Date.now()
-        };
-
-        addPenalty(newPenalty);
-        publishEvent('PENALTY_ADDED', newPenalty);
-        publishEvent('NOTIFICATION_SEND', {
-            title: 'Handysperre!',
-            body: `${penaltyDuration} Min für ${users[penaltyTarget as any]?.name} - Grund: ${penaltyReason}`
-        });
-
-        toast.success('Strafe erfolgreich verhängt');
-        setPenaltyReason('');
-    };
+    const [activeTab, setActiveTab] = useState<Tab>('tasks');
 
     return (
-        <div className="flex flex-col h-full bg-slate-50 relative pb-4 overflow-y-auto">
-            <div className="bg-slate-900 px-6 pt-10 pb-6 shadow-md text-white">
+        <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 relative pb-4 overflow-y-auto hide-scrollbar transition-colors">
+            {/* Header */}
+            <div className="bg-slate-900 px-6 pt-10 pb-4 shadow-md text-white">
                 <div className="flex items-center gap-3">
                     <ShieldAlert size={28} className="text-red-400" />
                     <h1 className="text-3xl font-extrabold tracking-tight">Admin Zentrale</h1>
@@ -44,81 +32,30 @@ export default function Admin() {
                 <p className="text-slate-400 font-medium mt-1 pl-10">Familien-Management</p>
             </div>
 
-            <div className="px-6 py-6 space-y-8">
-
-                {/* Penalty Card */}
-                <div className="bg-white rounded-3xl p-6 shadow-sm border border-red-50 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-1 h-full bg-red-400"></div>
-                    <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-4">
-                        <Smartphone size={20} className="text-red-500" /> Handysperre verhängen
-                    </h2>
-
-                    <form onSubmit={handleIssuePenalty} className="space-y-4">
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Kind</label>
-                            <select
-                                value={penaltyTarget}
-                                onChange={e => setPenaltyTarget(e.target.value)}
-                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-red-400 outline-none"
-                            >
-                                <option value="Tyler">Tyler</option>
-                                <option value="Fee">Fee</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Grund</label>
-                            <input
-                                type="text"
-                                value={penaltyReason}
-                                onChange={e => setPenaltyReason(e.target.value)}
-                                placeholder="z.B. Aufgaben ignoriert"
-                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-red-400 outline-none"
-                            />
-                        </div>
-
-                        <div className="flex gap-4">
-                            <div className="flex-1">
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Dauer (Min)</label>
-                                <input
-                                    type="number"
-                                    value={penaltyDuration}
-                                    onChange={e => setPenaltyDuration(Number(e.target.value))}
-                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-red-400 outline-none"
-                                />
-                            </div>
-                        </div>
-
-                        <button type="submit" disabled={!penaltyReason} className="w-full bg-red-500 text-white font-bold py-3 mt-2 rounded-xl active:bg-red-600 transition disabled:opacity-50">
-                            Strafe senden
-                        </button>
-                    </form>
-                </div>
-
-                {/* Belohnungen Card (Stub) */}
-                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-50 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-1 h-full bg-yellow-400"></div>
-                    <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-4">
-                        <Gift size={20} className="text-yellow-500" /> Belohnungen System
-                    </h2>
-                    <p className="text-sm text-slate-500 mb-4">Erstelle Belohnungen für bestimmte Level (z.B. 5€ Karte bei Lvl 20).</p>
-                    <button className="w-full bg-slate-100 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-200 transition flex items-center justify-center gap-2">
-                        <Plus size={18} /> Neue Belohnung einstellen
+            {/* Tab Bar */}
+            <div className="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 px-4 py-2 sticky top-0 z-10 flex gap-1 overflow-x-auto hide-scrollbar shadow-sm">
+                {TABS.map(tab => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all ${activeTab === tab.id
+                            ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'
+                            : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                            }`}
+                    >
+                        {tab.icon}
+                        {tab.label}
                     </button>
-                </div>
+                ))}
+            </div>
 
-                {/* Aufgaben verwalten (Stub) */}
-                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-50 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-1 h-full bg-blue-400"></div>
-                    <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-4">
-                        <Save size={20} className="text-blue-500" /> Aufgaben Datenbank
-                    </h2>
-                    <p className="text-sm text-slate-500 mb-4">Standard-Aufnahmen, Schwierigkeit bearbeiten, Regeln verwalten.</p>
-                    <button className="w-full bg-slate-100 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-200 transition flex items-center justify-center gap-2">
-                        Details bearbeiten
-                    </button>
-                </div>
-
+            {/* Tab Content */}
+            <div className="px-6 py-6 flex-1">
+                {activeTab === 'tasks' && <TaskDatabase />}
+                {activeTab === 'penalty' && <AdminPenaltyCard />}
+                {activeTab === 'message' && <AdminPushMessageCard />}
+                {activeTab === 'shop' && <AdminShopView />}
+                {activeTab === 'system' && <AdminSystemCard />}
             </div>
         </div>
     );

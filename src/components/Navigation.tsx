@@ -1,27 +1,31 @@
-import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Calendar, MessageSquare, BarChart2, Shield } from 'lucide-react';
+import { Calendar, MessageSquare, BarChart2, Shield, SmartphoneNfc, Store } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { motion } from 'framer-motion';
 
 export default function Navigation() {
-  const currentUser = useStore(state => state.currentUser);
-  const userObj = currentUser ? useStore(state => state.users[currentUser]) : null;
+  const { currentUser, users } = useStore(state => ({
+    currentUser: state.currentUser,
+    users: state.users,
+  }));
+  const userObj = currentUser ? users[currentUser] : null;
 
   if (!currentUser) return null;
 
   const navItems = [
     { to: '/dashboard', icon: Calendar, label: 'Plan' },
     { to: '/wall', icon: MessageSquare, label: 'Pinnwand' },
+    { to: '/shop', icon: Store, label: 'Shop' },
     { to: '/stats', icon: BarChart2, label: 'Stats' },
+    { to: '/penalties', icon: SmartphoneNfc, label: 'Verbot' },
   ];
 
-  if (currentUser === 'Ric' || currentUser === 'Nadine') {
+  if (currentUser && users[currentUser]?.role === 'admin') {
     navItems.push({ to: '/admin', icon: Shield, label: 'Admin' });
   }
 
   return (
-    <nav className="bg-white border-t border-slate-100 px-6 py-3 flex justify-between items-center rounded-t-3xl shadow-[0_-4px_25px_-5px_rgba(0,0,0,0.1)] select-none">
+    <nav className="bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 px-6 py-3 flex justify-between items-center rounded-t-3xl shadow-[0_-4px_25px_-5px_rgba(0,0,0,0.1)] select-none transition-colors">
       {navItems.map((item) => (
         <NavLink
           key={item.to}

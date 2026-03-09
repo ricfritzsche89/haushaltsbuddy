@@ -1,12 +1,19 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, ArrowLeft, ArrowRight } from 'lucide-react';
 
 export default function Login() {
-    const { users, setCurrentUser, setPin } = useStore();
+    const { users, setCurrentUser, setPin, currentUser } = useStore();
     const navigate = useNavigate();
+
+    // Auto-redirect: bereits eingeloggte User direkt zum Dashboard schicken
+    useEffect(() => {
+        if (currentUser) {
+            navigate('/dashboard', { replace: true });
+        }
+    }, [currentUser, navigate]);
 
     const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
     const [pinInput, setPinInput] = useState('');
