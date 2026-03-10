@@ -72,7 +72,7 @@ export default function Dashboard() {
     const displayedDays = viewMode === 'week' ? DAYS : [selectedDay];
 
     return (
-        <div className="h-full flex flex-col relative pt-4 px-4 overflow-hidden">
+        <div className="h-full flex flex-col relative pt-4 overflow-hidden">
 
             {/* Top-right action buttons - Shifted 15px left per User request */}
             <div className="absolute top-4 right-[31px] z-20 flex gap-2">
@@ -126,44 +126,46 @@ export default function Dashboard() {
                 </div>
             )}
 
-            <div className={`flex flex-col mb-4 flex-shrink-0 ${swapSourceId ? 'mt-8' : ''}`}>
-                <div>
-                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight ml-2">Wochenplan</h1>
-                    <p className="text-slate-500 dark:text-slate-400 font-medium ml-2">Diese Woche zu erledigen</p>
+            <div className="px-4">
+                <div className={`flex flex-col mb-4 flex-shrink-0 ${swapSourceId ? 'mt-8' : ''}`}>
+                    <div>
+                        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight ml-2">Wochenplan</h1>
+                        <p className="text-slate-500 dark:text-slate-400 font-medium ml-2">Diese Woche zu erledigen</p>
+                    </div>
                 </div>
-            </div>
 
-            {/* Controls Row */}
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-4 shrink-0 bg-slate-100 dark:bg-slate-800/50 p-2 rounded-2xl">
-                <select value={filterUser} onChange={e => setFilterUser(e.target.value)}
-                    className="flex-1 min-w-[140px] bg-white dark:bg-slate-900 border-none text-slate-700 dark:text-slate-300 text-sm font-semibold px-4 py-2.5 rounded-xl shadow-sm outline-none transition-colors">
-                    <option value="all">Alle Aufgaben</option>
-                    {Object.values(users).map(u => <option key={u.id} value={u.id}>{u.name}'s Aufgaben</option>)}
-                </select>
+                {/* Controls Row */}
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-4 shrink-0 bg-slate-100 dark:bg-slate-800/50 p-2 rounded-2xl">
+                    <select value={filterUser} onChange={e => setFilterUser(e.target.value)}
+                        className="flex-1 min-w-[140px] bg-white dark:bg-slate-900 border-none text-slate-700 dark:text-slate-300 text-sm font-semibold px-4 py-2.5 rounded-xl shadow-sm outline-none transition-colors">
+                        <option value="all">Alle Aufgaben</option>
+                        {Object.values(users).map(u => <option key={u.id} value={u.id}>{u.name}'s Aufgaben</option>)}
+                    </select>
 
-                <button onClick={() => { if (currentUser) useStore.getState().setDashboardView(currentUser, viewMode === 'week' ? 'today' : 'week'); }}
-                    className="bg-white dark:bg-slate-900 border-none text-slate-700 dark:text-slate-300 text-sm font-semibold px-4 py-2.5 rounded-xl shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2">
-                    <CalendarDays size={16} />
-                    {viewMode === 'week' ? 'Ganze Woche' : 'Tagesansicht'}
-                </button>
-            </div>
-
-            {/* Day Selector (today mode) */}
-            {viewMode === 'today' && (
-                <div className="flex overflow-x-auto pb-3 gap-2 hide-scrollbar mb-2 px-1 shrink-0">
-                    {DAYS.map(day => (
-                        <button key={day} onClick={() => setSelectedDay(day)}
-                            className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-colors ${selectedDay === day
-                                ? 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900 shadow-md'
-                                : 'bg-white text-slate-500 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800'}`}>
-                            {day.substring(0, 2)}
-                        </button>
-                    ))}
+                    <button onClick={() => { if (currentUser) useStore.getState().setDashboardView(currentUser, viewMode === 'week' ? 'today' : 'week'); }}
+                        className="bg-white dark:bg-slate-900 border-none text-slate-700 dark:text-slate-300 text-sm font-semibold px-4 py-2.5 rounded-xl shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2">
+                        <CalendarDays size={16} />
+                        {viewMode === 'week' ? 'Ganze Woche' : 'Tagesansicht'}
+                    </button>
                 </div>
-            )}
+
+                {/* Day Selector (today mode) */}
+                {viewMode === 'today' && (
+                    <div className="flex overflow-x-auto pb-3 gap-2 hide-scrollbar mb-2 px-1 shrink-0">
+                        {DAYS.map(day => (
+                            <button key={day} onClick={() => setSelectedDay(day)}
+                                className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-colors ${selectedDay === day
+                                    ? 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900 shadow-md'
+                                    : 'bg-white text-slate-500 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800'}`}>
+                                {day.substring(0, 2)}
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
 
             <div className={`flex-1 overflow-x-auto overflow-y-hidden pb-6
-                ${viewMode === 'week' ? 'flex snap-x snap-mandatory lg:snap-none lg:gap-4 px-2' : 'flex items-start w-full -mx-4'}
+                ${viewMode === 'week' ? 'flex snap-x snap-mandatory lg:snap-none lg:gap-4 px-4' : 'flex items-start w-full px-0'}
             `}>
                 {displayedDays.map((day) => {
                     let dayTasks = tasks.filter((t) => t.wochentag === day);
