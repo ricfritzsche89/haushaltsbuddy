@@ -15,6 +15,7 @@ import Settings from './pages/Settings';
 import Penalties from './pages/Penalties';
 import Shop from './pages/Shop';
 import Layout from './components/Layout';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
   const { currentUser, users, checkUserTitles, migrateTylerToTayler } = useStore();
@@ -110,23 +111,25 @@ function App() {
   }, [currentUser, users]);
 
   return (
-    <HashRouter>
-      <Routes>
-        <Route path="/" element={<Login />} />
+    <ErrorBoundary>
+      <HashRouter>
+        <Routes>
+          <Route path="/" element={<Login />} />
 
-        <Route element={<Layout />}>
-          <Route path="/dashboard" element={currentUser ? <Dashboard /> : <Navigate to="/" />} />
-          <Route path="/task/:id" element={currentUser ? <TaskDetail /> : <Navigate to="/" />} />
-          <Route path="/wall" element={currentUser ? <Wall /> : <Navigate to="/" />} />
-          <Route path="/stats" element={currentUser ? <Stats /> : <Navigate to="/" />} />
-          <Route path="/settings" element={currentUser ? <Settings /> : <Navigate to="/" />} />
-          <Route path="/admin" element={currentUser && users[currentUser]?.role === 'admin' ? <Admin /> : <Navigate to="/dashboard" />} />
-          <Route path="/penalties" element={currentUser ? <Penalties /> : <Navigate to="/" />} />
-          <Route path="/shop" element={currentUser ? <Shop /> : <Navigate to="/" />} />
-        </Route>
-      </Routes>
-      <Toaster position="top-center" />
-    </HashRouter>
+          <Route element={<Layout />}>
+            <Route path="/dashboard" element={currentUser ? <Dashboard /> : <Navigate to="/" />} />
+            <Route path="/task/:id" element={currentUser ? <TaskDetail /> : <Navigate to="/" />} />
+            <Route path="/wall" element={currentUser ? <Wall /> : <Navigate to="/" />} />
+            <Route path="/stats" element={currentUser ? <Stats /> : <Navigate to="/" />} />
+            <Route path="/settings" element={currentUser ? <Settings /> : <Navigate to="/" />} />
+            <Route path="/admin" element={currentUser && users[currentUser]?.role === 'admin' ? <Admin /> : <Navigate to="/dashboard" />} />
+            <Route path="/penalties" element={currentUser ? <Penalties /> : <Navigate to="/" />} />
+            <Route path="/shop" element={currentUser ? <Shop /> : <Navigate to="/" />} />
+          </Route>
+        </Routes>
+        <Toaster position="top-center" />
+      </HashRouter>
+    </ErrorBoundary>
   );
 }
 
