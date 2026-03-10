@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { useNavigate } from 'react-router-dom';
-import { Settings as SettingsIcon, LogOut, Moon, Sun, Camera, Palette, Lock, Download, Check, Store, Shield, ChevronRight } from 'lucide-react';
+import { Settings as SettingsIcon, LogOut, Moon, Sun, Camera, Palette, Lock, Download, Check, Store, Shield, ChevronRight, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { publishEvent } from '../services/syncService';
 import { motion } from 'framer-motion';
@@ -55,6 +55,38 @@ export default function Settings() {
         toast.success('PIN geändert! 🔐');
         setShowPinChange(false);
         setOldPin(''); setNewPin(''); setNewPin2('');
+    };
+
+    const handleHardReload = async () => {
+        if (!window.confirm('App wirklich zurücksetzen? Alle Caches werden gelöscht und die Seite wird neu geladen. Dein Login bleibt erhalten.')) return;
+
+        const loadingToast = toast.loading('App wird zurückgesetzt...');
+
+        try {
+            // 1. Unregister Service Workers
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (let registration of registrations) {
+                    await registration.unregister();
+                }
+            }
+
+            // 2. Clear Caches
+            const cacheNames = await caches.keys();
+            for (let name of cacheNames) {
+                await caches.delete(name);
+            }
+
+            toast.success('Bereinigt! Lade neu...', { id: loadingToast });
+            
+            // 3. Force Hard Reload
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } catch (err) {
+            console.error('Hard reload failed:', err);
+            toast.error('Fehler beim Zurücksetzen.', { id: loadingToast });
+        }
     };
 
     return (
@@ -214,7 +246,20 @@ export default function Settings() {
                     )}
                 </div>
 
-                {/* Titel-Auswahl */}
+                {/* System Wartung */}
+                <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden transition-colors">
+                    <button onClick={handleHardReload} className="w-full flex items-center justify-between p-5 hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-colors">
+                        <div className="flex items-center gap-4 text-slate-700 dark:text-slate-300 font-semibold">
+                            <div className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-500">
+                                <RefreshCw size={20} />
+                            </div>
+                            App hart neu laden (Cache leeren)
+                        </div>
+                        <ChevronRight size={18} className="text-slate-400" />
+                    </button>
+                </div>
+
+                {/* Titel-Auswahl Haus */}
                 <TitleSelection />
             </div>
         </div>

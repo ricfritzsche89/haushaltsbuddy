@@ -63,8 +63,18 @@ function App() {
   useEffect(() => {
     const handleVisibilityChange = async () => {
       if (document.visibilityState === 'visible') {
-        console.log('[Sync] App back in foreground – refreshing master state...');
+        console.log('[Sync] App back in foreground – refreshing master state & checking for updates...');
         await loadMasterState();
+        
+        // Trigger aggressive service worker update check
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistration().then(reg => {
+            if (reg) {
+              reg.update();
+              console.log('[SW] Update check triggered.');
+            }
+          });
+        }
       }
     };
 
