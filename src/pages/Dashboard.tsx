@@ -13,7 +13,7 @@ const DAYS: DayOfWeek[] = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Frei
 
 export default function Dashboard() {
     const { users, tasks, notifications, currentUser, setTasks, updateTask } = useStore();
-    const [selectedDay, setSelectedDay] = useState<DayOfWeek>('Montag');
+    const [selectedDay, setSelectedDay] = useState<DayOfWeek>(DAYS[(new Date().getDay() + 6) % 7]);
     const [swapSourceId, setSwapSourceId] = useState<string | null>(null);
     const [showLiveTask, setShowLiveTask] = useState(false);
     const [showNotifs, setShowNotifs] = useState(false);
