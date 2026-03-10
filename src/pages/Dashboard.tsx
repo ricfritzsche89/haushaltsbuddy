@@ -75,7 +75,7 @@ export default function Dashboard() {
         <div className="h-full flex flex-col relative pt-4 -mx-6 px-6 overflow-hidden">
 
             {/* Top-right action buttons */}
-            <div className="absolute top-4 right-0 z-20 flex gap-2 pr-2">
+            <div className="absolute top-4 right-4 z-20 flex gap-2">
                 {/* Bell / Notifications */}
                 <button
                     onClick={() => setShowNotifs(true)}
@@ -163,7 +163,7 @@ export default function Dashboard() {
             )}
 
             <div className={`flex-1 overflow-x-auto overflow-y-hidden pb-6 px-2
-                ${viewMode === 'week' ? 'flex snap-x snap-mandatory lg:snap-none lg:gap-4' : 'flex justify-center'}
+                ${viewMode === 'week' ? 'flex snap-x snap-mandatory lg:snap-none lg:gap-4' : 'flex justify-center items-start'}
             `}>
                 {displayedDays.map((day) => {
                     let dayTasks = tasks.filter((t) => t.wochentag === day);
