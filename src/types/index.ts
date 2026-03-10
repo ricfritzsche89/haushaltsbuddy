@@ -168,3 +168,11 @@ export interface InAppNotification {
   link?: string; // e.g. '/wall', '/dashboard'
   icon?: string; // emoji or identifier
 }
+export interface Appointment {
+  id: string;
+  userId: UserId;
+  title: string;
+  timeHome: string;
+  timestamp: number;
+  note?: string;
+}

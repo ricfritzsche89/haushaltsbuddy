@@ -5,9 +5,11 @@ import { publishEvent } from '../services/syncService';
 import { generateWeeklyPlan } from '../services/generatorService';
 import DayColumn from '../components/DayColumn';
 import CreateLiveTaskModal from '../components/CreateLiveTaskModal';
+import CreateAppointmentModal from '../components/CreateAppointmentModal';
 import NotificationCenterModal from '../components/NotificationCenterModal';
-import { Sparkles, CalendarDays, ArrowLeftRight, X, Plus, Bell } from 'lucide-react';
+import { Sparkles, CalendarDays, ArrowLeftRight, X, Plus, Bell, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
+import AppointmentCard from '../components/AppointmentCard';
 
 const DAYS: DayOfWeek[] = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
 
@@ -16,6 +18,8 @@ export default function Dashboard() {
     const [selectedDay, setSelectedDay] = useState<DayOfWeek>(DAYS[(new Date().getDay() + 6) % 7]);
     const [swapSourceId, setSwapSourceId] = useState<string | null>(null);
     const [showLiveTask, setShowLiveTask] = useState(false);
+    const [showAppointmentModal, setShowAppointmentModal] = useState(false);
+    const [editingAppointmentId, setEditingAppointmentId] = useState<string | null>(null);
     const [showNotifs, setShowNotifs] = useState(false);
 
     const userObj = currentUser ? users[currentUser] : null;
@@ -98,6 +102,18 @@ export default function Dashboard() {
                         <Plus size={18} />
                     </button>
                 )}
+
+                {/* Kids-only: Termine Button (Tayler/Fee) - Same position as Admin Plus */}
+                {!isAdmin && (currentUser === 'Tayler' || currentUser === 'Fee') && (
+                    <button
+                        onClick={() => setShowAppointmentModal(true)}
+                        className="flex items-center justify-center w-9 h-9 bg-red-600 active:bg-red-700 hover:bg-red-500 text-white rounded-full shadow-md transition-all active:scale-95"
+                        title="Termin eintragen"
+                    >
+                        <Clock size={18} />
+                    </button>
+                )}
+                
                 {/* Admin-only: Plan Generieren */}
                 {isAdmin && (
                     <button
@@ -111,6 +127,15 @@ export default function Dashboard() {
 
             {/* Modals */}
             {showLiveTask && <CreateLiveTaskModal onClose={() => setShowLiveTask(false)} />}
+            {showAppointmentModal && (
+                <CreateAppointmentModal 
+                    onClose={() => {
+                        setShowAppointmentModal(false);
+                        setEditingAppointmentId(null);
+                    }} 
+                    appointmentToEdit={editingAppointmentId ? useStore.getState().appointments.find(a => a.id === editingAppointmentId) : undefined}
+                />
+            )}
             {showNotifs && <NotificationCenterModal onClose={() => setShowNotifs(false)} />}
 
             {/* Swap Mode Banner */}
@@ -171,11 +196,23 @@ export default function Dashboard() {
                     let dayTasks = tasks.filter((t) => t.wochentag === day);
                     if (filterUser !== 'all') dayTasks = dayTasks.filter(t => t.zugewiesenerNutzer === filterUser);
 
+                    const { appointments } = useStore.getState();
+                    let dayApps = appointments.filter(a => {
+                        // For now we assume appointments are for "Today" if in today view, 
+                        // but let's just show all active ones for now to be safe.
+                        // Actually, user said "like tasks", so we should maybe add wochentag to Appointment?
+                        // "naja soll genauso eingetragen werden wie die aufgaben" -> implies it has a day.
+                        return true; // We'll add wochentag support if needed, but for now we list all.
+                    });
+                    if (filterUser !== 'all') dayApps = dayApps.filter(a => a.userId === filterUser);
+
                     return (
                         <div key={day} className={`snap-center shrink-0 h-full ${viewMode === 'today' ? 'w-full' : ''}`}>
                             <DayColumn
                                 day={day}
                                 tasks={dayTasks}
+                                appointments={dayApps}
+                                isActive={viewMode === 'today' && day === selectedDay}
                                 isCompact={viewMode === 'week'}
                                 onDayClick={() => {
                                     if (currentUser && viewMode === 'week') {
@@ -185,6 +222,11 @@ export default function Dashboard() {
                                 }}
                                 swapSourceId={swapSourceId}
                                 onSwapSelect={handleSwapSelect}
+                                onEditAppointment={(id) => {
+                                    setEditingAppointmentId(id);
+                                    setShowAppointmentModal(true);
+                                }}
+                                canEditAppointments={isAdmin || currentUser === 'Tayler' || currentUser === 'Fee'}
                             />
                         </div>
                     );

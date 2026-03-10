@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Task, UserProfile, Reward, WallPost, Penalty, OffenseReport, UserId, DayOfWeek, TaskTemplate, DashboardViewMode, ShopItem, RewardPurchase, InAppNotification } from '../types';
+import type { Task, UserProfile, Reward, WallPost, Penalty, OffenseReport, UserId, DayOfWeek, TaskTemplate, DashboardViewMode, ShopItem, RewardPurchase, InAppNotification, Appointment } from '../types';
 import { ALLE_TITEL } from '../types';
 
 interface AppState {
@@ -14,6 +14,7 @@ interface AppState {
     shopItems: ShopItem[];
     purchases: RewardPurchase[];
     notifications: InAppNotification[];
+    appointments: Appointment[];
     lastReminders: Record<string, boolean>; // Key: YYYY-MM-DD-HH, Value: true if sent
     currentUser: UserId | null;
     setCurrentUser: (id: UserId | null) => void;
@@ -56,6 +57,11 @@ interface AppState {
     addNotification: (notification: InAppNotification) => void;
     markNotificationAsRead: (notificationId: string) => void;
     markAllNotificationsAsRead: (userId: UserId) => void;
+
+    // Appointments
+    addAppointment: (appointment: Appointment) => void;
+    updateAppointment: (id: string, updates: Partial<Appointment>) => void;
+    deleteAppointment: (id: string) => void;
 
     clearOldPhotos: () => void;
     markReminderSent: (reminderKey: string) => void;
@@ -168,6 +174,7 @@ export const useStore = create<AppState>()(
             shopItems: initialShopItems,
             purchases: [],
             notifications: [],
+            appointments: [],
             lastReminders: {},
             currentUser: null,
 
@@ -410,11 +417,26 @@ export const useStore = create<AppState>()(
                     n.id === notificationId ? { ...n, read: true } : n
                 )
             })),
-            markAllNotificationsAsRead: (userId) => set(state => ({
-                notifications: state.notifications.map(n =>
-                    n.userId === userId ? { ...n, read: true } : n
-                )
-            })),
+            markAllNotificationsAsRead: (userId) =>
+                set((state) => ({
+                    notifications: state.notifications.map(n => n.userId === userId ? { ...n, read: true } : n)
+                })),
+
+            // Appointments
+            addAppointment: (appointment) =>
+                set((state) => ({
+                    appointments: [...state.appointments, appointment]
+                })),
+
+            updateAppointment: (id, updates) =>
+                set((state) => ({
+                    appointments: state.appointments.map(a => a.id === id ? { ...a, ...updates } : a)
+                })),
+
+            deleteAppointment: (id) =>
+                set((state) => ({
+                    appointments: state.appointments.filter(a => a.id !== id)
+                })),
 
             // Clears base64 proof photos older than today at midnight (avatarUrl exempt)
             clearOldPhotos: () =>
@@ -637,6 +659,7 @@ export const useStore = create<AppState>()(
                 shopItems: newState.shopItems || state.shopItems,
                 purchases: newState.purchases || state.purchases,
                 notifications: newState.notifications || state.notifications,
+                appointments: newState.appointments || state.appointments,
                 // Do not override currentUser, lastReminders or other local UI states
             })),
         }),
