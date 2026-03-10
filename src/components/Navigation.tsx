@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Calendar, MessageSquare, BarChart2, Shield, SmartphoneNfc, Store } from 'lucide-react';
+import { Calendar, MessageSquare, BarChart2, SmartphoneNfc } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { motion } from 'framer-motion';
 
@@ -13,14 +13,9 @@ export default function Navigation() {
   const navItems = [
     { to: '/dashboard', icon: Calendar, label: 'Plan' },
     { to: '/wall', icon: MessageSquare, label: 'Pinnwand' },
-    { to: '/shop', icon: Store, label: 'Shop' },
     { to: '/stats', icon: BarChart2, label: 'Stats' },
     { to: '/penalties', icon: SmartphoneNfc, label: 'Verbot' },
   ];
-
-  if (currentUser && users[currentUser]?.role === 'admin') {
-    navItems.push({ to: '/admin', icon: Shield, label: 'Admin' });
-  }
 
   return (
     <nav className="bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 px-6 py-3 flex justify-between items-center rounded-t-3xl shadow-[0_-4px_25px_-5px_rgba(0,0,0,0.1)] select-none transition-colors">

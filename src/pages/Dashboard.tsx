@@ -5,21 +5,24 @@ import { publishEvent } from '../services/syncService';
 import { generateWeeklyPlan } from '../services/generatorService';
 import DayColumn from '../components/DayColumn';
 import CreateLiveTaskModal from '../components/CreateLiveTaskModal';
-import { Sparkles, CalendarDays, ArrowLeftRight, X, Plus } from 'lucide-react';
+import NotificationCenterModal from '../components/NotificationCenterModal';
+import { Sparkles, CalendarDays, ArrowLeftRight, X, Plus, Bell } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const DAYS: DayOfWeek[] = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
 
 export default function Dashboard() {
-    const { users, tasks, currentUser, setTasks, updateTask } = useStore();
+    const { users, tasks, notifications, currentUser, setTasks, updateTask } = useStore();
     const [selectedDay, setSelectedDay] = useState<DayOfWeek>('Montag');
     const [swapSourceId, setSwapSourceId] = useState<string | null>(null);
     const [showLiveTask, setShowLiveTask] = useState(false);
+    const [showNotifs, setShowNotifs] = useState(false);
 
     const userObj = currentUser ? users[currentUser] : null;
     const isAdmin = Boolean(currentUser && users[currentUser]?.role === 'admin');
     const filterUser = userObj?.dashboardFilter || 'all';
     const viewMode = userObj?.dashboardView || 'week';
+    const unreadCount = notifications.filter(n => n.userId === currentUser && !n.read).length;
 
     const setFilterUser = (val: string) => {
         if (currentUser) useStore.getState().updateUserProfile(currentUser, { dashboardFilter: val });
@@ -71,32 +74,44 @@ export default function Dashboard() {
     return (
         <div className="h-full flex flex-col relative pt-4 -mx-6 px-6 overflow-hidden">
 
-            {/* Admin floating buttons */}
-            {isAdmin && (
-                <div className="absolute top-4 right-6 z-20 flex gap-2">
-                    {/* Live-Aufgabe Button */}
+            {/* Top-right action buttons */}
+            <div className="absolute top-4 right-0 z-20 flex gap-2 pr-2">
+                {/* Bell / Notifications */}
+                <button
+                    onClick={() => setShowNotifs(true)}
+                    className="relative flex items-center justify-center w-9 h-9 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-full shadow-md transition-all active:scale-95 hover:scale-105"
+                >
+                    <Bell size={18} className="text-slate-600 dark:text-slate-300" />
+                    {unreadCount > 0 && (
+                        <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white rounded-full text-[9px] font-bold flex items-center justify-center border border-white dark:border-slate-800 animate-pulse">
+                            {unreadCount > 9 ? '9+' : unreadCount}
+                        </span>
+                    )}
+                </button>
+
+                {/* Admin-only: Live-Aufgabe Button */}
+                {isAdmin && (
                     <button
                         onClick={() => setShowLiveTask(true)}
-                        className="flex items-center gap-1.5 bg-emerald-600 active:bg-emerald-700 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl shadow-md text-sm font-bold tracking-wide transition-all active:scale-95"
+                        className="flex items-center justify-center w-9 h-9 bg-emerald-600 active:bg-emerald-700 hover:bg-emerald-500 text-white rounded-full shadow-md transition-all active:scale-95"
                     >
-                        <Plus size={16} />
-                        <span className="hidden sm:inline">Aufgabe</span>
+                        <Plus size={18} />
                     </button>
-                    {/* Plan Generieren */}
+                )}
+                {/* Admin-only: Plan Generieren */}
+                {isAdmin && (
                     <button
                         onClick={handleGeneratePlan}
-                        className="flex items-center gap-1.5 bg-indigo-600 active:bg-indigo-700 hover:bg-indigo-500 text-white px-3 py-2 rounded-xl shadow-md text-sm font-bold tracking-wide transition-all active:scale-95"
+                        className="flex items-center justify-center w-9 h-9 bg-indigo-600 active:bg-indigo-700 hover:bg-indigo-500 text-white rounded-full shadow-md transition-all active:scale-95"
                     >
-                        <Sparkles size={16} />
-                        <span className="hidden sm:inline">Plan</span>
+                        <Sparkles size={18} />
                     </button>
-                </div>
-            )}
+                )}
+            </div>
 
-            {/* Live-Aufgabe Modal */}
-            {showLiveTask && (
-                <CreateLiveTaskModal onClose={() => setShowLiveTask(false)} />
-            )}
+            {/* Modals */}
+            {showLiveTask && <CreateLiveTaskModal onClose={() => setShowLiveTask(false)} />}
+            {showNotifs && <NotificationCenterModal onClose={() => setShowNotifs(false)} />}
 
             {/* Swap Mode Banner */}
             {swapSourceId && (

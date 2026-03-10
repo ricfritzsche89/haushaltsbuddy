@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { useNavigate } from 'react-router-dom';
-import { Settings as SettingsIcon, LogOut, Moon, Sun, Camera, Palette, Lock, Download } from 'lucide-react';
+import { Settings as SettingsIcon, LogOut, Moon, Sun, Camera, Palette, Lock, Download, Check, Store, Shield, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { publishEvent } from '../services/syncService';
 import { motion } from 'framer-motion';
@@ -185,6 +185,33 @@ export default function Settings() {
                         </div>
                         Abmelden
                     </button>
+                </div>
+
+                {/* Quick Links: Shop & Admin */}
+                <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden transition-colors">
+                    {/* Shop (für alle sichtbar) */}
+                    <button onClick={() => navigate('/shop')} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center gap-4 text-slate-700 dark:text-slate-300 font-semibold">
+                            <div className="w-10 h-10 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-500">
+                                <Store size={20} />
+                            </div>
+                            Belohnungs-Shop
+                        </div>
+                        <ChevronRight size={18} className="text-slate-400" />
+                    </button>
+
+                    {/* Admin (nur für Admins) */}
+                    {userObj.role === 'admin' && (
+                        <button onClick={() => navigate('/admin')} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                            <div className="flex items-center gap-4 text-slate-700 dark:text-slate-300 font-semibold">
+                                <div className="w-10 h-10 rounded-full bg-rose-50 dark:bg-rose-900/30 flex items-center justify-center text-rose-500">
+                                    <Shield size={20} />
+                                </div>
+                                Admin-Bereich
+                            </div>
+                            <ChevronRight size={18} className="text-slate-400" />
+                        </button>
+                    )}
                 </div>
 
                 {/* Titel-Auswahl */}
