@@ -59,7 +59,6 @@ export default function AdminShopView() {
                 emoji: form.emoji!,
                 description: form.description || '',
                 cost: form.cost!,
-                available: true,
             };
             addShopItem(newItem);
             publishEvent('SHOP_ITEM_ADDED', newItem);
@@ -180,9 +179,8 @@ export default function AdminShopView() {
                 </div>
             )}
 
-            {/* ── FORM MODAL ── */}
             {showForm && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center pb-6 px-4">
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center pb-24 px-4 overflow-y-auto">
                     <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-md p-6 shadow-2xl space-y-4">
                         <div className="flex items-center justify-between">
                             <h3 className="text-lg font-extrabold text-slate-800 dark:text-white">

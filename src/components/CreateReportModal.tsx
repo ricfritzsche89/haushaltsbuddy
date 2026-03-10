@@ -95,7 +95,7 @@ export default function CreateReportModal({ onClose }: { onClose: () => void }) 
     const [reportReason, setReportReason] = useState('');
     const [reportPhoto, setReportPhoto] = useState<string | null>(null);
 
-    const allUsers = Object.values(users);
+    const allUsers = Object.values(users).filter(u => u.id !== 'Ric' && u.id !== 'Nadine');
 
     const handleReport = (e: React.FormEvent) => {
         e.preventDefault();
@@ -161,7 +161,7 @@ export default function CreateReportModal({ onClose }: { onClose: () => void }) 
                                         ${targetUser === u.id ? 'bg-white dark:bg-slate-700 shadow-md transform scale-105' : 'hover:bg-slate-200/50 dark:hover:bg-slate-800 opacity-60 grayscale'}
                                     `}
                                 >
-                                    <UserAvatar name={u.name} color={u.color} size="md" />
+                                    <UserAvatar user={u} size={64} />
                                     <span className={`text-xs font-extrabold ${targetUser === u.id ? 'text-slate-800 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>{u.name}</span>
                                 </button>
                             ))}
