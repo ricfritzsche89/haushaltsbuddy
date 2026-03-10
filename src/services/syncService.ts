@@ -153,138 +153,166 @@ export async function publishEvent(type: SyncEvent['type'], data: any) {
 
 /**
  * Listens to new events from Firebase and applies them to the local Zustand store.
- * @param isInitialSync If true, it means we are just starting up and this snapshot might contain events we already have in our Master State.
+ * Auto-reconnects with exponential backoff if the connection drops.
+ * @param isInitialSync If true, events older than the loaded master state are skipped.
  */
-export function startSyncListener(isInitialSync: boolean = false) {
-    const eventsRef = collection(db, 'family_events');
-    // Listen to the most recent 50 events to catch real-time updates and historical missed events
-    const q = query(eventsRef, orderBy('timestamp', 'desc'), limit(50));
+export function startSyncListener(isInitialSync: boolean = false): () => void {
+    let unsubscribe: (() => void) | null = null;
+    let retryTimeout: ReturnType<typeof setTimeout> | null = null;
+    let retryDelay = 5000; // Start at 5s, double each time up to 30s
+    let stopped = false;
 
-    let isFirstSnapshot = true;
+    function connect() {
+        if (stopped) return;
 
-    return onSnapshot(q, (snapshot) => {
-        // Reverse array because 'desc' ordering gives us newest first, but we want to apply oldest first to build correct state sequentially
-        const changes = [...snapshot.docChanges()].reverse();
+        const eventsRef = collection(db, 'family_events');
+        const q = query(eventsRef, orderBy('timestamp', 'desc'), limit(50));
 
-        changes.forEach((change) => {
-            // Only care about newly added events while we are listening
-            if (change.type === 'added') {
-                const event = change.doc.data() as SyncEvent;
+        let isFirstSnapshot = true;
 
-                // Ignore our own events (we already applied them locally)
-                if (event.origin === originId) return;
+        unsubscribe = onSnapshot(q, (snapshot) => {
+            // Reset backoff on successful update
+            retryDelay = 5000;
 
-                // Ignore events without a proper timestamp (can happen during local optimistic writes)
-                if (!event.timestamp) return;
+            // Reverse because 'desc' gives newest first, we want oldest first
+            const changes = [...snapshot.docChanges()].reverse();
 
-                const eventTimeMs = event.timestamp.toMillis();
+            changes.forEach((change) => {
+                if (change.type === 'added') {
+                    const event = change.doc.data() as SyncEvent;
 
-                // If this is the initial snapshot and the event is older than our downloaded Master State, skip it!
-                if (isInitialSync && isFirstSnapshot && eventTimeMs <= lastSyncTimestamp) {
-                    return;
+                    if (event.origin === originId) return;
+                    if (!event.timestamp) return;
+
+                    const eventTimeMs = event.timestamp.toMillis();
+
+                    if (isInitialSync && isFirstSnapshot && eventTimeMs <= lastSyncTimestamp) {
+                        return;
+                    }
+
+                    const data = JSON.parse(event.payload);
+                    const store = useStore.getState();
+
+                    switch (event.type) {
+                        case 'TASK_ADDED':
+                            if (!store.tasks.find(t => t.id === data.id)) {
+                                store.addTask(data);
+                            }
+                            break;
+                        case 'WEEKLY_PLAN_GENERATED':
+                            store.setTasks(data);
+                            break;
+                        case 'TASK_UPDATED':
+                            store.updateTask(data.id, data.updates);
+                            break;
+                        case 'TASK_REMOVED':
+                            store.removeTask(data.id);
+                            break;
+                        case 'WALL_POSTED':
+                            if (!store.wallPosts.find(p => p.id === data.id)) {
+                                store.addWallPost(data);
+                            }
+                            break;
+                        case 'XP_ADDED':
+                            store.addXP(data.userId, data.amount);
+                            break;
+                        case 'PENALTY_ADDED':
+                            if (!store.penalties.find(p => p.id === data.id)) {
+                                store.addPenalty(data);
+                            }
+                            break;
+                        case 'PENALTY_ACTIVATED':
+                            store.activatePenalty(data.penaltyId, data.timestamp);
+                            break;
+                        case 'PENALTY_REMOVED':
+                            store.deletePenalty(data.penaltyId);
+                            break;
+                        case 'WALL_LIKED':
+                            store.likePost(data.postId, data.userId);
+                            break;
+                        case 'WALL_REACTED':
+                            store.addWallReaction(data.postId, data.userId, data.emoji);
+                            break;
+                        case 'WALL_COMMENTED':
+                            store.addWallComment(data.postId, data.comment);
+                            break;
+                        case 'WALL_UPDATED':
+                            store.updateWallPost(data.postId, data.updates);
+                            break;
+                        case 'WALL_DELETED':
+                            store.deleteWallPost(data.postId);
+                            break;
+                        case 'USER_PROFILE_UPDATED':
+                            store.updateUserProfile(data.userId, data.updates);
+                            break;
+                        case 'OFFENSE_REPORT_ADDED':
+                            if (!store.offenseReports.find(r => r.id === data.id)) {
+                                store.addOffenseReport(data);
+                            }
+                            break;
+                        case 'OFFENSE_REPORT_UPDATED':
+                            store.updateOffenseReport(data.reportId, data.updates);
+                            break;
+                        case 'REMINDER_SENT':
+                            store.markReminderSent(data.reminderKey);
+                            break;
+                        case 'SHOP_ITEM_ADDED':
+                            if (!store.shopItems.find(i => i.id === data.id)) {
+                                store.addShopItem(data);
+                            }
+                            break;
+                        case 'SHOP_ITEM_UPDATED':
+                            store.updateShopItem(data.itemId, data.updates);
+                            break;
+                        case 'SHOP_ITEM_DELETED':
+                            store.deleteShopItem(data.itemId);
+                            break;
+                        case 'SHOP_ITEM_PURCHASED':
+                            store.purchaseItem(data.userId, data.itemId, data.cost);
+                            const stateAfterPurchase = useStore.getState();
+                            const justPurchased = stateAfterPurchase.purchases.find(
+                                p => p.itemId === data.itemId && p.userId === data.userId && p.status === 'pending'
+                            );
+                            if (justPurchased) {
+                                justPurchased.id = data.purchaseId;
+                            }
+                            break;
+                        case 'SHOP_PURCHASE_REDEEMED':
+                            store.redeemPurchase(data.purchaseId);
+                            break;
+                        case 'NOTIFICATION_ADDED':
+                            store.addNotification(data.notification);
+                            break;
+                        case 'FULL_STATE_SYNC':
+                            store.replaceState(data);
+                            break;
+                    }
                 }
+            });
 
-                const data = JSON.parse(event.payload);
-                const store = useStore.getState();
+            isFirstSnapshot = false;
+        }, (error) => {
+            // On error: clean up and auto-reconnect with backoff
+            console.warn(`[Sync] Event listener error, retrying in ${retryDelay / 1000}s:`, error.message);
+            unsubscribe?.();
+            unsubscribe = null;
 
-                switch (event.type) {
-                    case 'TASK_ADDED':
-                        // Check if it already exists to avoid duplicates
-                        if (!store.tasks.find(t => t.id === data.id)) {
-                            store.addTask(data);
-                        }
-                        break;
-                    case 'WEEKLY_PLAN_GENERATED':
-                        store.setTasks(data);
-                        break;
-                    case 'TASK_UPDATED':
-                        store.updateTask(data.id, data.updates);
-                        break;
-                    case 'TASK_REMOVED':
-                        store.removeTask(data.id);
-                        break;
-                    case 'WALL_POSTED':
-                        if (!store.wallPosts.find(p => p.id === data.id)) {
-                            store.addWallPost(data);
-                        }
-                        break;
-                    case 'XP_ADDED':
-                        store.addXP(data.userId, data.amount);
-                        break;
-                    case 'PENALTY_ADDED':
-                        if (!store.penalties.find(p => p.id === data.id)) {
-                            store.addPenalty(data);
-                        }
-                        break;
-                    case 'PENALTY_ACTIVATED':
-                        store.activatePenalty(data.penaltyId, data.timestamp);
-                        break;
-                    case 'PENALTY_REMOVED':
-                        store.deletePenalty(data.penaltyId);
-                        break;
-                    case 'WALL_LIKED':
-                        store.likePost(data.postId, data.userId);
-                        break;
-                    case 'WALL_REACTED':
-                        store.addWallReaction(data.postId, data.userId, data.emoji);
-                        break;
-                    case 'WALL_COMMENTED':
-                        store.addWallComment(data.postId, data.comment);
-                        break;
-                    case 'WALL_UPDATED':
-                        store.updateWallPost(data.postId, data.updates);
-                        break;
-                    case 'WALL_DELETED':
-                        store.deleteWallPost(data.postId);
-                        break;
-                    case 'USER_PROFILE_UPDATED':
-                        store.updateUserProfile(data.userId, data.updates);
-                        break;
-                    case 'OFFENSE_REPORT_ADDED':
-                        if (!store.offenseReports.find(r => r.id === data.id)) {
-                            store.addOffenseReport(data);
-                        }
-                        break;
-                    case 'OFFENSE_REPORT_UPDATED':
-                        store.updateOffenseReport(data.reportId, data.updates);
-                        break;
-                    case 'REMINDER_SENT':
-                        store.markReminderSent(data.reminderKey);
-                        break;
-                    case 'SHOP_ITEM_ADDED':
-                        if (!store.shopItems.find(i => i.id === data.id)) {
-                            store.addShopItem(data);
-                        }
-                        break;
-                    case 'SHOP_ITEM_UPDATED':
-                        store.updateShopItem(data.itemId, data.updates);
-                        break;
-                    case 'SHOP_ITEM_DELETED':
-                        store.deleteShopItem(data.itemId);
-                        break;
-                    case 'SHOP_ITEM_PURCHASED':
-                        store.purchaseItem(data.userId, data.itemId, data.cost);
-                        // Make sure we override the internally generated UUID with the synced one so it matches across devices
-                        const stateAfterPurchase = useStore.getState();
-                        const justPurchased = stateAfterPurchase.purchases.find(p => p.itemId === data.itemId && p.userId === data.userId && p.status === 'pending');
-                        if (justPurchased) {
-                            justPurchased.id = data.purchaseId;
-                        }
-                        break;
-                    case 'SHOP_PURCHASE_REDEEMED':
-                        store.redeemPurchase(data.purchaseId);
-                        break;
-                    case 'NOTIFICATION_ADDED':
-                        store.addNotification(data.notification);
-                        break;
-                    case 'FULL_STATE_SYNC':
-                        store.replaceState(data);
-                        break;
-                    // REQUEST_FULL_SYNC is deprecated, replaced by central Master State
-                }
+            if (!stopped) {
+                retryTimeout = setTimeout(() => {
+                    retryDelay = Math.min(retryDelay * 2, 30000);
+                    connect();
+                }, retryDelay);
             }
         });
+    }
 
-        isFirstSnapshot = false;
-    });
+    connect();
+
+    // Return a combined cleanup function
+    return () => {
+        stopped = true;
+        if (retryTimeout) clearTimeout(retryTimeout);
+        unsubscribe?.();
+    };
 }
+
