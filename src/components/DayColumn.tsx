@@ -14,7 +14,7 @@ interface Props {
 export default function DayColumn({ day, tasks, isActive, onDayClick, isCompact, swapSourceId, onSwapSelect }: Props) {
     return (
         <div
-            className={`flex flex-col flex-shrink-0 ${isCompact ? 'w-60 md:w-64 lg:w-72' : 'w-72 md:w-80 lg:w-96'} max-w-[85vw] h-full rounded-3xl p-4 lg:p-5 mr-4 lg:mr-0 transition-colors 
+            className={`flex flex-col flex-shrink-0 ${isCompact ? 'w-60 md:w-64 lg:w-72 mr-4 max-w-[85vw]' : 'w-full'} h-full rounded-3xl p-4 lg:p-5 transition-colors 
             ${isActive ? 'bg-blue-50/80 dark:bg-blue-900/30 border-2 border-blue-200 dark:border-blue-800' : 'bg-slate-100/50 dark:bg-slate-800/50 border-2 border-transparent'}
             ${swapSourceId ? 'border-indigo-200/50' : ''}`}
         >
