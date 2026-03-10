@@ -22,35 +22,35 @@ export default function Admin() {
     const [activeTab, setActiveTab] = useState<Tab>('tasks');
 
     return (
-        <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 relative pb-4 overflow-y-auto hide-scrollbar transition-colors">
-            {/* Header */}
-            <div className="bg-slate-900 px-6 pt-10 pb-4 shadow-md text-white">
-                <div className="flex items-center gap-3">
-                    <ShieldAlert size={28} className="text-red-400" />
-                    <h1 className="text-3xl font-extrabold tracking-tight">Admin Zentrale</h1>
+        <div className="flex flex-col bg-slate-50 dark:bg-slate-950 relative pb-20 transition-colors">
+            {/* Header - Compact */}
+            <div className="bg-slate-900 px-6 pt-4 pb-3 shadow-md text-white">
+                <div className="flex items-center gap-2">
+                    <ShieldAlert size={20} className="text-red-400" />
+                    <h1 className="text-xl font-extrabold tracking-tight">Admin Zentrale</h1>
+                    <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full ml-auto uppercase tracking-widest font-bold">Pro</span>
                 </div>
-                <p className="text-slate-400 font-medium mt-1 pl-10">Familien-Management</p>
             </div>
 
-            {/* Tab Bar */}
-            <div className="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 px-4 py-2 sticky top-0 z-10 flex gap-1 overflow-x-auto hide-scrollbar shadow-sm">
+            {/* Tab Bar - Sticky at Top of Screen (considering Layout padding) */}
+            <div className="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 px-4 py-2 sticky top-[-16px] z-30 flex gap-1 overflow-x-auto hide-scrollbar shadow-sm">
                 {TABS.map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all ${activeTab === tab.id
-                            ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'
+                        className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${activeTab === tab.id
+                            ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md scale-105'
                             : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                             }`}
                     >
-                        {tab.icon}
+                        {React.cloneElement(tab.icon as React.ReactElement, { size: 14 })}
                         {tab.label}
                     </button>
                 ))}
             </div>
 
             {/* Tab Content */}
-            <div className="px-6 py-6 flex-1">
+            <div className="px-4 py-4 flex-1">
                 {activeTab === 'tasks' && <TaskDatabase />}
                 {activeTab === 'penalty' && <AdminPenaltyCard />}
                 {activeTab === 'message' && <AdminPushMessageCard />}
