@@ -33,9 +33,13 @@ function App() {
   const unsubEventsRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+    
     const initSync = async () => {
       // 1. Load the latest master state snapshot on boot
       await loadMasterState();
+
+      if (!isMounted) return;
 
       // 2. Subscribe to live master-state-document changes.
       //    This fires within ~1-2 seconds whenever another device saves its state.
@@ -48,6 +52,7 @@ function App() {
     initSync();
 
     return () => {
+      isMounted = false;
       unsubMasterRef.current?.();
       unsubEventsRef.current?.();
     };

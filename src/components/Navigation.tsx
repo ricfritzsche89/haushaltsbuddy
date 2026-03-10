@@ -4,10 +4,8 @@ import { useStore } from '../store/useStore';
 import { motion } from 'framer-motion';
 
 export default function Navigation() {
-  const { currentUser, users } = useStore(state => ({
-    currentUser: state.currentUser,
-    users: state.users,
-  }));
+  const currentUser = useStore(state => state.currentUser);
+  const users = useStore(state => state.users);
   const userObj = currentUser ? users[currentUser] : null;
 
   if (!currentUser) return null;
