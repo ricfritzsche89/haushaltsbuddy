@@ -47,7 +47,7 @@ interface PenaltyCardProps {
 
 export default function PenaltyCard({ penalty, isActive, isAdmin, users, onActivate, onDelete }: PenaltyCardProps) {
     const victim = users[penalty.userId];
-    const issuer = users[penalty.issuedBy];
+    const issuer = penalty.issuedBy ? users[penalty.issuedBy] : null;
     const endsAt = penalty.activatedAt ? penalty.activatedAt + (penalty.durationMinutes * 60 * 1000) : null;
 
     return (
@@ -62,7 +62,7 @@ export default function PenaltyCard({ penalty, isActive, isAdmin, users, onActiv
         >
             <div className="flex justify-between items-start gap-3 mb-3">
                 <div className="flex items-center gap-3">
-                    <UserAvatar name={victim?.name || 'Unbekannt'} color={victim?.color || '#ccc'} size="md" />
+                    <UserAvatar user={victim} size={64} />
                     <div>
                         <h3 className={`font-extrabold text-lg leading-tight ${isActive ? 'text-rose-900 dark:text-rose-400' : 'text-slate-800 dark:text-slate-200'}`}>
                             {penalty.reason}

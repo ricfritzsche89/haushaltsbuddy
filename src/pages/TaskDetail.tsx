@@ -190,9 +190,7 @@ export default function TaskDetail() {
                     {/* Zugewiesener User */}
                     {task.zugewiesenerNutzer && (
                         <div className="flex items-center gap-2 mt-2">
-                            <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: users[task.zugewiesenerNutzer]?.color }}>
-                                {users[task.zugewiesenerNutzer]?.name.charAt(0)}
-                            </div>
+                            <UserAvatar user={users[task.zugewiesenerNutzer]} size={24} />
                             <span className="text-sm text-slate-500 dark:text-slate-400">{users[task.zugewiesenerNutzer]?.name}</span>
                         </div>
                     )}

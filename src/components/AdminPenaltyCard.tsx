@@ -58,8 +58,12 @@ export default function AdminPenaltyCard() {
                         onChange={e => setPenaltyTarget(e.target.value)}
                         className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-white rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-red-400 outline-none transition-colors"
                     >
-                        <option value="Tayler">Tayler</option>
-                        <option value="Fee">Fee</option>
+                        {Object.values(users)
+                            .filter(u => u.id !== 'Ric' && u.id !== 'Nadine')
+                            .map(u => (
+                                <option key={u.id} value={u.id}>{u.name}</option>
+                            ))
+                        }
                     </select>
                 </div>
 

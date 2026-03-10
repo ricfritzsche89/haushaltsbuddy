@@ -30,7 +30,7 @@ export default function OffenseReportCard({ report, isAdmin, users, onReject, on
         <div className={`p-4 sm:p-5 rounded-3xl border-2 shadow-sm transition-all ${report.status === 'pending' ? 'bg-amber-50/50 dark:bg-slate-900 border-amber-200 dark:border-amber-900/50' : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 opacity-60'}`}>
             <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
                 <div className="flex items-center gap-3 shrink-0">
-                    <UserAvatar name={accused?.name || 'Unbekannt'} color={accused?.color || '#ccc'} size="md" />
+                    <UserAvatar user={accused} size={64} />
                     <div className="sm:hidden">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${getStatusStyle(report.status)}`}>
                             {getStatusIcon(report.status)}
