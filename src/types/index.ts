@@ -17,6 +17,7 @@ export interface UserProfile {
   xp: number;
   activeTitle?: string;
   unlockedTitles?: string[];
+  balance: number;
 }
 
 // --- Titel-System ---
@@ -173,6 +174,32 @@ export interface Appointment {
   userId: UserId;
   title: string;
   timeHome: string;
+  wochentag: DayOfWeek;
   timestamp: number;
   note?: string;
+}
+
+export type TransactionType = 'deposit' | 'withdrawal' | 'adjustment' | 'investment';
+export type TransactionStatus = 'pending' | 'completed' | 'rejected';
+
+export interface InvestmentEvent {
+  id: string;
+  title: string;
+  description: string;
+  emoji: string;
+  type: 'vacation' | 'shopping' | 'other';
+  createdAt: number;
+}
+
+export interface Transaction {
+  id: string;
+  userId: UserId;
+  amount: number;
+  type: TransactionType;
+  status: TransactionStatus;
+  reason: string;
+  timestamp: number;
+  handledBy?: UserId | 'System'; // Admin who approved/rejected
+  handledAt?: number;
+  eventId?: string; // ID of the InvestmentEvent if type is 'investment'
 }

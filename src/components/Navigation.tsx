@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Calendar, MessageSquare, BarChart2, SmartphoneNfc } from 'lucide-react';
+import { Calendar, MessageSquare, BarChart2, SmartphoneNfc, PiggyBank } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { motion } from 'framer-motion';
 
@@ -15,6 +15,7 @@ export default function Navigation() {
     { to: '/wall', icon: MessageSquare, label: 'Pinnwand' },
     { to: '/stats', icon: BarChart2, label: 'Stats' },
     { to: '/penalties', icon: SmartphoneNfc, label: 'Verbot' },
+    { to: userObj?.role === 'admin' ? '/admin/savings' : '/savings', icon: PiggyBank, label: 'Sparen' },
   ];
 
   return (

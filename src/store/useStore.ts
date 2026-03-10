@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Task, UserProfile, Reward, WallPost, Penalty, OffenseReport, UserId, DayOfWeek, TaskTemplate, DashboardViewMode, ShopItem, RewardPurchase, InAppNotification, Appointment } from '../types';
+import type { 
+  Task, UserProfile, Reward, WallPost, Penalty, OffenseReport, 
+  UserId, DayOfWeek, TaskTemplate, DashboardViewMode, ShopItem, 
+  RewardPurchase, InAppNotification, Appointment, Transaction, 
+  TransactionStatus, InvestmentEvent 
+} from '../types';
 import { ALLE_TITEL } from '../types';
 
 interface AppState {
@@ -15,6 +20,8 @@ interface AppState {
     purchases: RewardPurchase[];
     notifications: InAppNotification[];
     appointments: Appointment[];
+    transactions: Transaction[]; // Added
+    investmentEvents: InvestmentEvent[]; // New
     lastReminders: Record<string, boolean>; // Key: YYYY-MM-DD-HH, Value: true if sent
     currentUser: UserId | null;
     setCurrentUser: (id: UserId | null) => void;
@@ -63,6 +70,15 @@ interface AppState {
     updateAppointment: (id: string, updates: Partial<Appointment>) => void;
     deleteAppointment: (id: string) => void;
 
+    // Transactions
+    addTransaction: (transaction: Omit<Transaction, 'id' | 'timestamp' | 'status'>) => void;
+    updateTransactionStatus: (transactionId: string, status: TransactionStatus, adminId: UserId) => void;
+    adjustBalance: (userId: UserId, amount: number) => void;
+
+    // Investment Events
+    addInvestmentEvent: (event: Omit<InvestmentEvent, 'id' | 'createdAt'>) => void;
+    deleteInvestmentEvent: (eventId: string) => void;
+
     clearOldPhotos: () => void;
     markReminderSent: (reminderKey: string) => void;
     syncState: (newState: any) => void;
@@ -73,15 +89,16 @@ interface AppState {
     checkUserTitles: (userId: UserId) => void;
     resetUserXP: (userId: UserId) => void;
     migrateTylerToTayler: () => void;
+    resetAllPins: () => void;
     // This function allows replacing the entire state when a full sync from another device happens
     replaceState: (newState: Partial<AppState>) => void;
 }
 
 const initialUsers: Record<UserId, UserProfile> = {
-    Ric: { id: 'Ric', name: 'Ric', role: 'admin', color: '#3b82f6', availability: 'available', xp: 0, activeTitle: 'chef', unlockedTitles: ['chef'] },
-    Nadine: { id: 'Nadine', name: 'Nadine', role: 'user', color: '#ec4899', availability: 'available', xp: 0, activeTitle: 'chefin', unlockedTitles: ['chefin'] },
-    Tayler: { id: 'Tayler', name: 'Tayler', role: 'user', color: '#10b981', availability: 'available', xp: 0, activeTitle: 'lauch', unlockedTitles: ['lauch'] },
-    Fee: { id: 'Fee', name: 'Fee', role: 'user', color: '#a855f7', availability: 'available', xp: 0, activeTitle: 'igelschnautzchen', unlockedTitles: ['igelschnautzchen'] },
+    Ric: { id: 'Ric', name: 'Ric', role: 'admin', color: '#3b82f6', availability: 'available', xp: 0, balance: 0, activeTitle: 'chef', unlockedTitles: ['chef'], pin: '7602' },
+    Nadine: { id: 'Nadine', name: 'Nadine', role: 'user', color: '#ec4899', availability: 'available', xp: 0, balance: 0, activeTitle: 'chefin', unlockedTitles: ['chefin'], pin: '0815' },
+    Tayler: { id: 'Tayler', name: 'Tayler', role: 'user', color: '#10b981', availability: 'available', xp: 0, balance: 0, activeTitle: 'lauch', unlockedTitles: ['lauch'], pin: '1234' },
+    Fee: { id: 'Fee', name: 'Fee', role: 'user', color: '#a855f7', availability: 'available', xp: 0, balance: 0, activeTitle: 'igelschnautzchen', unlockedTitles: ['igelschnautzchen'], pin: '1234' },
 };
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -175,6 +192,8 @@ export const useStore = create<AppState>()(
             purchases: [],
             notifications: [],
             appointments: [],
+            transactions: [], // Added
+            investmentEvents: [], // New
             lastReminders: {},
             currentUser: null,
 
@@ -438,6 +457,93 @@ export const useStore = create<AppState>()(
                     appointments: state.appointments.filter(a => a.id !== id)
                 })),
 
+            // Transactions
+            addTransaction: (transactionData) => {
+                const newTransaction: Transaction = {
+                    ...transactionData,
+                    id: generateId(),
+                    timestamp: Date.now(),
+                    status: 'pending', // Both deposit and withdrawal start as pending for admin confirmation
+                };
+
+                set((state) => ({
+                    transactions: [newTransaction, ...state.transactions]
+                }));
+            },
+
+            updateTransactionStatus: (transactionId, status, adminId) => {
+                set((state) => {
+                    const trans = state.transactions.find(t => t.id === transactionId);
+                    if (!trans || trans.status !== 'pending') return state;
+
+                    const updatedTransactions = state.transactions.map(t =>
+                        t.id === transactionId ? { ...t, status, handledBy: adminId, handledAt: Date.now() } : t
+                    );
+
+                    const updatedUsers = { ...state.users };
+                    if (status === 'completed') {
+                        const user = updatedUsers[trans.userId];
+                        if (user) {
+                            // Apply money change
+                            const modifier = trans.type === 'deposit' ? 1 : -1;
+                            updatedUsers[trans.userId] = {
+                                ...user,
+                                balance: (user.balance || 0) + (trans.amount * modifier)
+                            };
+                        }
+                    }
+
+                    return {
+                        transactions: updatedTransactions,
+                        users: updatedUsers
+                    };
+                });
+            },
+
+            adjustBalance: (userId, amount) => {
+                set((state) => {
+                    const user = state.users[userId];
+                    if (!user) return state;
+
+                    const newTransaction: Transaction = {
+                        id: generateId(),
+                        userId,
+                        amount,
+                        type: 'adjustment',
+                        status: 'completed',
+                        reason: 'Manuelle Korrektur durch Admin',
+                        timestamp: Date.now(),
+                        handledBy: state.currentUser || 'System',
+                        handledAt: Date.now()
+                    };
+
+                    return {
+                        users: {
+                            ...state.users,
+                            [userId]: { ...user, balance: (user.balance || 0) + amount }
+                        },
+                        transactions: [newTransaction, ...state.transactions]
+                    };
+                });
+            },
+
+            addInvestmentEvent: (eventData) => {
+                const newEvent: InvestmentEvent = {
+                    ...eventData,
+                    id: generateId(),
+                    createdAt: Date.now(),
+                };
+                set((state) => ({
+                    investmentEvents: [newEvent, ...state.investmentEvents]
+                }));
+            },
+
+            deleteInvestmentEvent: (eventId) => {
+                set((state) => ({
+                    investmentEvents: state.investmentEvents.filter(e => e.id !== eventId)
+                }));
+            },
+
             // Clears base64 proof photos older than today at midnight (avatarUrl exempt)
             clearOldPhotos: () =>
                 set((state) => {
@@ -612,6 +718,14 @@ export const useStore = create<AppState>()(
                         [userId]: { ...state.users[userId], pin },
                     },
                 })),
+            resetAllPins: () => set((state) => {
+                const updatedUsers = { ...state.users };
+                if (updatedUsers['Ric']) updatedUsers['Ric'] = { ...updatedUsers['Ric'], pin: '7602' };
+                if (updatedUsers['Nadine']) updatedUsers['Nadine'] = { ...updatedUsers['Nadine'], pin: '0815' };
+                if (updatedUsers['Tayler']) updatedUsers['Tayler'] = { ...updatedUsers['Tayler'], pin: '1234' };
+                if (updatedUsers['Fee']) updatedUsers['Fee'] = { ...updatedUsers['Fee'], pin: '1234' };
+                return { users: updatedUsers };
+            }),
             setDarkMode: (userId, isDark) =>
                 set((state) => ({
                     users: {
@@ -644,6 +758,7 @@ export const useStore = create<AppState>()(
                     for (const id in newState.users) {
                         merged[id as UserId] = {
                             ...newState.users[id as UserId],
+                            balance: newState.users[id as UserId].balance ?? (state.users[id as UserId]?.balance || 0),
                             dashboardView: state.users[id as UserId]?.dashboardView || newState.users[id as UserId].dashboardView,
                             dashboardFilter: state.users[id as UserId]?.dashboardFilter || newState.users[id as UserId].dashboardFilter,
                         };
@@ -658,8 +773,9 @@ export const useStore = create<AppState>()(
                 offenseReports: newState.offenseReports || state.offenseReports,
                 shopItems: newState.shopItems || state.shopItems,
                 purchases: newState.purchases || state.purchases,
-                notifications: newState.notifications || state.notifications,
                 appointments: newState.appointments || state.appointments,
+                transactions: newState.transactions || state.transactions, // Added
+                investmentEvents: newState.investmentEvents || state.investmentEvents, // New
                 // Do not override currentUser, lastReminders or other local UI states
             })),
         }),

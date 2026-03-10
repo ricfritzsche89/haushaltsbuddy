@@ -14,6 +14,8 @@ import Admin from './pages/Admin';
 import Settings from './pages/Settings';
 import Penalties from './pages/Penalties';
 import Shop from './pages/Shop';
+import SavingsPage from './pages/SavingsPage';
+import AdminSavingsView from './pages/AdminSavingsView';
 import Layout from './components/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -135,6 +137,8 @@ function App() {
             <Route path="/admin" element={currentUser && users[currentUser]?.role === 'admin' ? <Admin /> : <Navigate to="/dashboard" />} />
             <Route path="/penalties" element={currentUser ? <Penalties /> : <Navigate to="/" />} />
             <Route path="/shop" element={currentUser ? <Shop /> : <Navigate to="/" />} />
+            <Route path="/savings" element={currentUser ? <SavingsPage /> : <Navigate to="/" />} />
+            <Route path="/admin/savings" element={currentUser && users[currentUser]?.role === 'admin' ? <AdminSavingsView /> : <Navigate to="/dashboard" />} />
           </Route>
         </Routes>
         <Toaster position="top-center" />

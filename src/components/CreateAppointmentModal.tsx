@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { X, Clock, Check } from 'lucide-react';
+import { X, Clock, Check, Calendar } from 'lucide-react';
 import { useStore } from '../store/useStore';
-import type { Appointment } from '../types';
+import type { Appointment, DayOfWeek } from '../types';
 import { sendPushNotification } from '../services/ntfyService';
 import toast from 'react-hot-toast';
+
+const DAYS: DayOfWeek[] = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
 
 interface CreateAppointmentModalProps {
     onClose: () => void;
@@ -14,6 +16,7 @@ export default function CreateAppointmentModal({ onClose, appointmentToEdit }: C
     const { currentUser, addAppointment, updateAppointment, users } = useStore();
     const [title, setTitle] = useState(appointmentToEdit?.title || '');
     const [timeHome, setTimeHome] = useState(appointmentToEdit?.timeHome || '');
+    const [wochentag, setWochentag] = useState<DayOfWeek>(appointmentToEdit?.wochentag || DAYS[(new Date().getDay() + 6) % 7]);
     const [note, setNote] = useState(appointmentToEdit?.note || '');
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -29,6 +32,7 @@ export default function CreateAppointmentModal({ onClose, appointmentToEdit }: C
             updateAppointment(appointmentToEdit.id, {
                 title,
                 timeHome,
+                wochentag,
                 note,
             });
             toast.success('Termin aktualisiert! 🕒');
@@ -38,6 +42,7 @@ export default function CreateAppointmentModal({ onClose, appointmentToEdit }: C
                 userId: currentUser,
                 title,
                 timeHome,
+                wochentag,
                 timestamp: Date.now(),
                 note,
             };
@@ -47,7 +52,7 @@ export default function CreateAppointmentModal({ onClose, appointmentToEdit }: C
             const userName = users[currentUser]?.name || currentUser;
             sendPushNotification({
                 title: `Neuer Termin: ${userName}`,
-                message: `${userName} geht weg: "${title}". Geplante Rückkehr: ${timeHome}`,
+                message: `${userName} geht weg: "${title}" am ${wochentag}. Geplante Rückkehr: ${timeHome}`,
                 tags: ['clock', 'calendar']
             });
             
@@ -78,6 +83,24 @@ export default function CreateAppointmentModal({ onClose, appointmentToEdit }: C
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 ml-1">
+                                Wochentag
+                            </label>
+                            <div className="relative">
+                                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                <select
+                                    value={wochentag}
+                                    onChange={(e) => setWochentag(e.target.value as DayOfWeek)}
+                                    className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl pl-12 pr-4 py-3 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition-all outline-none appearance-none"
+                                >
+                                    {DAYS.map(day => (
+                                        <option key={day} value={day}>{day}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
                         <div>
                             <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 ml-1">
                                 Was hast du vor? (z.B. Treffen mit Kumpel)

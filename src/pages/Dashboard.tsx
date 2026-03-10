@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { DayOfWeek } from '../types';
+import { Link } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { publishEvent } from '../services/syncService';
 import { generateWeeklyPlan } from '../services/generatorService';
@@ -7,9 +8,11 @@ import DayColumn from '../components/DayColumn';
 import CreateLiveTaskModal from '../components/CreateLiveTaskModal';
 import CreateAppointmentModal from '../components/CreateAppointmentModal';
 import NotificationCenterModal from '../components/NotificationCenterModal';
-import { Sparkles, CalendarDays, ArrowLeftRight, X, Plus, Bell, Clock } from 'lucide-react';
+import { 
+  Bell, Plus, Sparkles, Clock, PiggyBank, 
+  ArrowLeftRight, X, CalendarDays 
+} from 'lucide-react';
 import toast from 'react-hot-toast';
-import AppointmentCard from '../components/AppointmentCard';
 
 const DAYS: DayOfWeek[] = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
 
@@ -79,7 +82,20 @@ export default function Dashboard() {
         <div className="h-full flex flex-col relative pt-4 overflow-hidden">
 
             {/* Top-right action buttons - Shifted 15px left per User request */}
-            <div className="absolute top-4 right-[31px] z-20 flex gap-2">
+            <div className="absolute top-4 right-[31px] z-20 flex items-center gap-2">
+                {/* Spardose / Balance Pill */}
+                {currentUser && (
+                    <Link
+                        to={isAdmin ? "/admin/savings" : "/savings"}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 rounded-2xl shadow-sm transition-all active:scale-95 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 group"
+                    >
+                        <PiggyBank size={16} className="text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform" />
+                        <span className="text-sm font-black text-indigo-700 dark:text-indigo-300">
+                            {(users[currentUser]?.balance || 0).toFixed(2)}€
+                        </span>
+                    </Link>
+                )}
+
                 {/* Bell / Notifications */}
                 <button
                     onClick={() => setShowNotifs(true)}
@@ -133,7 +149,7 @@ export default function Dashboard() {
                         setShowAppointmentModal(false);
                         setEditingAppointmentId(null);
                     }} 
-                    appointmentToEdit={editingAppointmentId ? useStore.getState().appointments.find(a => a.id === editingAppointmentId) : undefined}
+                    appointmentToEdit={editingAppointmentId ? useStore.getState().appointments.find(app => app.id === editingAppointmentId) : undefined}
                 />
             )}
             {showNotifs && <NotificationCenterModal onClose={() => setShowNotifs(false)} />}
@@ -197,14 +213,10 @@ export default function Dashboard() {
                     if (filterUser !== 'all') dayTasks = dayTasks.filter(t => t.zugewiesenerNutzer === filterUser);
 
                     const { appointments } = useStore.getState();
-                    let dayApps = appointments.filter(a => {
-                        // For now we assume appointments are for "Today" if in today view, 
-                        // but let's just show all active ones for now to be safe.
-                        // Actually, user said "like tasks", so we should maybe add wochentag to Appointment?
-                        // "naja soll genauso eingetragen werden wie die aufgaben" -> implies it has a day.
-                        return true; // We'll add wochentag support if needed, but for now we list all.
+                    let dayApps = appointments.filter(_app => {
+                        return _app.wochentag === day;
                     });
-                    if (filterUser !== 'all') dayApps = dayApps.filter(a => a.userId === filterUser);
+                    if (filterUser !== 'all') dayApps = dayApps.filter(app => app.userId === filterUser);
 
                     return (
                         <div key={day} className={`snap-center shrink-0 h-full ${viewMode === 'today' ? 'w-full' : ''}`}>

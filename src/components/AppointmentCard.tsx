@@ -23,7 +23,7 @@ export default function AppointmentCard({ appointment, onEdit, canEdit }: Appoin
     return (
         <div 
             onClick={() => canEdit && onEdit && onEdit()}
-            className={`group h-full flex flex-col bg-white dark:bg-slate-800 rounded-2xl border-2 border-red-100 dark:border-red-900/30 overflow-hidden transition-all duration-300 hover:shadow-md hover:border-red-300 dark:hover:border-red-700 active:scale-[0.98] ${canEdit ? 'cursor-pointer' : ''}`}
+            className={`group flex flex-col bg-white dark:bg-slate-800 rounded-2xl border-2 border-red-100 dark:border-red-900/30 overflow-hidden transition-all duration-300 hover:shadow-md hover:border-red-300 dark:hover:border-red-700 active:scale-[0.98] ${canEdit ? 'cursor-pointer' : ''}`}
         >
             {/* Status Bar (Markant Rot) */}
             <div className="h-1.5 bg-red-500 w-full" />
