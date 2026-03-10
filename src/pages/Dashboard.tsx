@@ -72,7 +72,7 @@ export default function Dashboard() {
     const displayedDays = viewMode === 'week' ? DAYS : [selectedDay];
 
     return (
-        <div className="h-full flex flex-col relative pt-4 -mx-6 px-6 overflow-hidden">
+        <div className={`h-full flex flex-col relative pt-4 -mx-6 ${viewMode === 'today' ? 'px-2' : 'px-6'} overflow-hidden`}>
 
             {/* Top-right action buttons - Shifted 15px left per User request */}
             <div className="absolute top-4 right-[31px] z-20 flex gap-2">
@@ -162,15 +162,15 @@ export default function Dashboard() {
                 </div>
             )}
 
-            <div className={`flex-1 overflow-x-auto overflow-y-hidden pb-6 px-2
-                ${viewMode === 'week' ? 'flex snap-x snap-mandatory lg:snap-none lg:gap-4' : 'flex justify-center items-start pl-[10px]'}
+            <div className={`flex-1 overflow-x-auto overflow-y-hidden pb-6 ${viewMode === 'today' ? 'px-0' : 'px-2'}
+                ${viewMode === 'week' ? 'flex snap-x snap-mandatory lg:snap-none lg:gap-4' : 'flex items-start w-full'}
             `}>
                 {displayedDays.map((day) => {
                     let dayTasks = tasks.filter((t) => t.wochentag === day);
                     if (filterUser !== 'all') dayTasks = dayTasks.filter(t => t.zugewiesenerNutzer === filterUser);
 
                     return (
-                        <div key={day} className={`snap-center shrink-0 h-full ${viewMode === 'today' ? 'w-[85vw] max-w-sm sm:w-[320px]' : ''}`}>
+                        <div key={day} className={`snap-center shrink-0 h-full ${viewMode === 'today' ? 'w-full' : ''}`}>
                             <DayColumn
                                 day={day}
                                 tasks={dayTasks}
