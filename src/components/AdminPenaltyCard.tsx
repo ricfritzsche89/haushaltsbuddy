@@ -59,7 +59,7 @@ export default function AdminPenaltyCard() {
                         className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-white rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-red-400 outline-none transition-colors"
                     >
                         {Object.values(users)
-                            .filter(u => u.id !== 'Ric' && u.id !== 'Nadine')
+                            .filter(u => u.role !== 'admin')
                             .map(u => (
                                 <option key={u.id} value={u.id}>{u.name}</option>
                             ))

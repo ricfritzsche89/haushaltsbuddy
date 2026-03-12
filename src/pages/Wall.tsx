@@ -13,7 +13,7 @@ export default function Wall() {
 
     if (!currentUser) return null;
     const me = users[currentUser];
-    const isAdmin = currentUser === 'Ric' || currentUser === 'Nadine';
+    const isAdmin = Boolean(currentUser && users[currentUser]?.role === 'admin');
 
     const handlePost = (e: React.FormEvent) => {
         e.preventDefault();

@@ -110,7 +110,7 @@ interface CreatePenaltyModalProps {
 
 export default function CreatePenaltyModal({ onClose, initialUserId, initialReason, offenseReportIdToApprove }: CreatePenaltyModalProps) {
     const { users, currentUser, addPenalty, updateOffenseReport } = useStore();
-    const allUsers = Object.values(users).filter(u => u.id !== 'Ric' && u.id !== 'Nadine');
+    const allUsers = Object.values(users).filter(u => u.role !== 'admin');
 
     const [targetUser, setTargetUser] = useState<UserId>(initialUserId || ('Tayler' as UserId));
     const [penaltyName, setPenaltyName] = useState(initialReason || '');

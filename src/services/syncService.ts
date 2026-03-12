@@ -3,7 +3,7 @@ import { db } from '../lib/firebase/config';
 import { useStore } from '../store/useStore';
 
 export type SyncEvent = {
-    type: 'TASK_ADDED' | 'TASK_UPDATED' | 'TASK_REMOVED' | 'WALL_POSTED' | 'WALL_LIKED' | 'WALL_REACTED' | 'WALL_COMMENTED' | 'WALL_UPDATED' | 'WALL_DELETED' | 'XP_ADDED' | 'PENALTY_ADDED' | 'PENALTY_ACTIVATED' | 'PENALTY_REMOVED' | 'WEEKLY_PLAN_GENERATED' | 'USER_PROFILE_UPDATED' | 'OFFENSE_REPORT_ADDED' | 'OFFENSE_REPORT_UPDATED' | 'REMINDER_SENT' | 'SHOP_ITEM_ADDED' | 'SHOP_ITEM_UPDATED' | 'SHOP_ITEM_DELETED' | 'SHOP_ITEM_PURCHASED' | 'SHOP_PURCHASE_REDEEMED' | 'NOTIFICATION_ADDED' | 'FULL_STATE_SYNC' | 'REQUEST_FULL_SYNC';
+    type: 'TASK_ADDED' | 'TASK_UPDATED' | 'TASK_REMOVED' | 'WALL_POSTED' | 'WALL_LIKED' | 'WALL_REACTED' | 'WALL_COMMENTED' | 'WALL_UPDATED' | 'WALL_DELETED' | 'XP_ADDED' | 'PENALTY_ADDED' | 'PENALTY_ACTIVATED' | 'PENALTY_REMOVED' | 'WEEKLY_PLAN_GENERATED' | 'USER_PROFILE_UPDATED' | 'OFFENSE_REPORT_ADDED' | 'OFFENSE_REPORT_UPDATED' | 'REMINDER_SENT' | 'SHOP_ITEM_ADDED' | 'SHOP_ITEM_UPDATED' | 'SHOP_ITEM_DELETED' | 'SHOP_ITEM_PURCHASED' | 'SHOP_PURCHASE_REDEEMED' | 'NOTIFICATION_ADDED' | 'FULL_STATE_SYNC' | 'REQUEST_FULL_SYNC' | 'TRANSACTION_ADDED' | 'TRANSACTION_STATUS_UPDATED' | 'BALANCE_ADJUSTED' | 'INVESTMENT_EVENT_ADDED' | 'INVESTMENT_EVENT_DELETED' | 'BANKING_RESET' | 'TASKS_CLEARED';
     payload: string; // JSON stringified data
     origin: string; // unique browser/device ID to avoid self-syncing
     timestamp: any;
@@ -285,6 +285,31 @@ export function startSyncListener(isInitialSync: boolean = false): () => void {
                             break;
                         case 'FULL_STATE_SYNC':
                             store.replaceState(data);
+                            break;
+                        case 'TRANSACTION_ADDED':
+                            if (!store.transactions.find(t => t.id === data.id)) {
+                                store.addTransaction(data);
+                            }
+                            break;
+                        case 'TRANSACTION_STATUS_UPDATED':
+                            store.updateTransactionStatus(data.transactionId, data.status, data.adminId);
+                            break;
+                        case 'BALANCE_ADJUSTED':
+                            store.adjustBalance(data.userId, data.amount);
+                            break;
+                        case 'INVESTMENT_EVENT_ADDED':
+                            if (!store.investmentEvents.find(e => e.id === data.id)) {
+                                store.addInvestmentEvent(data);
+                            }
+                            break;
+                        case 'INVESTMENT_EVENT_DELETED':
+                            store.deleteInvestmentEvent(data.eventId);
+                            break;
+                        case 'BANKING_RESET':
+                            store.resetBanking();
+                            break;
+                        case 'TASKS_CLEARED':
+                            store.clearTasks();
                             break;
                     }
                 }

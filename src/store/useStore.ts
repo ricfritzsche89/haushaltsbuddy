@@ -33,6 +33,7 @@ interface AppState {
     moveTask: (taskId: string, newDay: DayOfWeek) => void;
     addComment: (taskId: string, comment: any) => void;
     setTasks: (tasks: Task[]) => void;
+    clearTasks: () => void;
 
     // Template Management
     addTaskTemplate: (template: TaskTemplate) => void;
@@ -90,13 +91,15 @@ interface AppState {
     resetUserXP: (userId: UserId) => void;
     migrateTylerToTayler: () => void;
     resetAllPins: () => void;
+    resetBanking: () => void;
+    recordDayCompletion: (userId: UserId) => void;
     // This function allows replacing the entire state when a full sync from another device happens
     replaceState: (newState: Partial<AppState>) => void;
 }
 
 const initialUsers: Record<UserId, UserProfile> = {
     Ric: { id: 'Ric', name: 'Ric', role: 'admin', color: '#3b82f6', availability: 'available', xp: 0, balance: 0, activeTitle: 'chef', unlockedTitles: ['chef'], pin: '7602' },
-    Nadine: { id: 'Nadine', name: 'Nadine', role: 'user', color: '#ec4899', availability: 'available', xp: 0, balance: 0, activeTitle: 'chefin', unlockedTitles: ['chefin'], pin: '0815' },
+    Nadine: { id: 'Nadine', name: 'Nadine', role: 'admin', color: '#ec4899', availability: 'available', xp: 0, balance: 0, activeTitle: 'chefin', unlockedTitles: ['chefin'], pin: '0815' },
     Tayler: { id: 'Tayler', name: 'Tayler', role: 'user', color: '#10b981', availability: 'available', xp: 0, balance: 0, activeTitle: 'lauch', unlockedTitles: ['lauch'], pin: '1234' },
     Fee: { id: 'Fee', name: 'Fee', role: 'user', color: '#a855f7', availability: 'available', xp: 0, balance: 0, activeTitle: 'igelschnautzchen', unlockedTitles: ['igelschnautzchen'], pin: '1234' },
 };
@@ -258,6 +261,8 @@ export const useStore = create<AppState>()(
                 });
                 set({ tasks: normalizedTasks });
             },
+
+            clearTasks: () => set({ tasks: [] }),
 
             addTaskTemplate: (template) =>
                 set((state) => ({
@@ -726,6 +731,21 @@ export const useStore = create<AppState>()(
                 if (updatedUsers['Fee']) updatedUsers['Fee'] = { ...updatedUsers['Fee'], pin: '1234' };
                 return { users: updatedUsers };
             }),
+
+            resetBanking: () => set((state) => {
+                const updatedUsers = { ...state.users };
+                Object.keys(updatedUsers).forEach(id => {
+                    updatedUsers[id as UserId] = {
+                        ...updatedUsers[id as UserId],
+                        balance: 0
+                    };
+                });
+                return {
+                    transactions: [],
+                    users: updatedUsers
+                };
+            }),
+
             setDarkMode: (userId, isDark) =>
                 set((state) => ({
                     users: {
@@ -749,6 +769,31 @@ export const useStore = create<AppState>()(
                         [userId]: { ...state.users[userId], activeTitle: titleId },
                     },
                 })),
+
+            recordDayCompletion: (userId) => set((state) => {
+                const today = new Date().toISOString().split('T')[0];
+                const user = state.users[userId];
+                if (!user) return {};
+                if (user.lastStreakDate === today) return {}; // already counted today
+
+                const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+                const isConsecutive = user.lastStreakDate === yesterday;
+
+                const newStreak = isConsecutive ? (user.streak || 0) + 1 : 1;
+                const newLongest = Math.max(newStreak, user.longestStreak || 0);
+
+                return {
+                    users: {
+                        ...state.users,
+                        [userId]: {
+                            ...user,
+                            streak: newStreak,
+                            longestStreak: newLongest,
+                            lastStreakDate: today,
+                        },
+                    },
+                };
+            }),
 
             replaceState: (newState) => set((state) => ({
                 ...state,

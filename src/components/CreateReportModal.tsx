@@ -95,7 +95,7 @@ export default function CreateReportModal({ onClose }: { onClose: () => void }) 
     const [reportReason, setReportReason] = useState('');
     const [reportPhoto, setReportPhoto] = useState<string | null>(null);
 
-    const allUsers = Object.values(users).filter(u => u.id !== 'Ric' && u.id !== 'Nadine');
+    const allUsers = Object.values(users).filter(u => u.role !== 'admin');
 
     const handleReport = (e: React.FormEvent) => {
         e.preventDefault();

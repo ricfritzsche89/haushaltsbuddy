@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
+import { publishEvent } from '../services/syncService';
 import { 
   PiggyBank, 
   ArrowUpRight, 
@@ -48,13 +49,22 @@ export default function SavingsPage() {
 
     const currentEvent = selectedEventId ? investmentEvents.find(e => e.id === selectedEventId) : null;
 
-    addTransaction({
+    const newTransaction = {
       userId: currentUser,
       amount: numAmount,
       type,
       reason: reason || (type === 'investment' ? `Investition: ${currentEvent?.title}` : type === 'withdrawal' ? 'Freie Verfügung' : 'Sparen'),
       eventId: selectedEventId || undefined
-    });
+    };
+
+    addTransaction(newTransaction);
+    
+    // We need to get the ID of the newly created transaction to sync it correctly
+    // Since addTransaction generates it internally, we'll use the latest transaction for this user
+    const lastTrans = useStore.getState().transactions[0];
+    if (lastTrans) {
+      publishEvent('TRANSACTION_ADDED', lastTrans);
+    }
 
     // Notify admins
     const adminIds = Object.values(users as Record<string, any>).filter(u => u.role === 'admin').map(u => u.id);

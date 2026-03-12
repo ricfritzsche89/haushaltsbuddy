@@ -10,7 +10,7 @@ import UserAvatar from '../components/UserAvatar';
 export default function TaskDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { tasks, updateTask, currentUser, addComment, addXP } = useStore();
+    const { tasks, updateTask, currentUser, addComment, addXP, recordDayCompletion } = useStore();
     const task = tasks.find(t => t.id === id);
     const users = useStore(state => state.users);
 
@@ -110,8 +110,23 @@ export default function TaskDetail() {
     const verifyTask = () => {
         updateTask(task.id, { status: 'verifiziert' });
         publishEvent('TASK_UPDATED', { id: task.id, updates: { status: 'verifiziert' } });
-        toast.success('Aufgabe verifiziert! ✅');
 
+        // Check if all tasks for this user today are now verifiziert or erledigt
+        const userId = task.zugewiesenerNutzer;
+        if (userId) {
+            const today = new Date().toLocaleDateString('de-DE', { weekday: 'long' }) as any;
+            const { tasks: allTasks } = useStore.getState();
+            const todayUserTasks = allTasks.filter(t => t.zugewiesenerNutzer === userId && t.wochentag === today);
+            const allDone = todayUserTasks.every(t => t.status === 'erledigt' || t.status === 'verifiziert' || t.id === task.id);
+            if (allDone && todayUserTasks.length > 0) {
+                recordDayCompletion(userId);
+                const { users } = useStore.getState();
+                const streak = (users[userId]?.streak || 0) + 1;
+                if (streak > 1) toast.success(`🔥 ${users[userId]?.name} hat eine ${streak}-Tage-Streak!`, { duration: 4000 });
+            }
+        }
+
+        toast.success('Aufgabe verifiziert! ✅');
         sendPushNotification({
             title: `🌟 Aufgabe bestätigt!`,
             message: `Deine Aufgabe "${task.titel}" wurde von einem Admin bestätigt!`,

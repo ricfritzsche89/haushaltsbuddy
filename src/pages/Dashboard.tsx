@@ -8,9 +8,10 @@ import DayColumn from '../components/DayColumn';
 import CreateLiveTaskModal from '../components/CreateLiveTaskModal';
 import CreateAppointmentModal from '../components/CreateAppointmentModal';
 import NotificationCenterModal from '../components/NotificationCenterModal';
+import ManualTaskDistributorModal from '../components/ManualTaskDistributorModal';
 import { 
   Bell, Plus, Sparkles, Clock, PiggyBank, 
-  ArrowLeftRight, X, CalendarDays 
+  ArrowLeftRight, X, CalendarDays, LayoutList, Flame 
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -24,6 +25,7 @@ export default function Dashboard() {
     const [showAppointmentModal, setShowAppointmentModal] = useState(false);
     const [editingAppointmentId, setEditingAppointmentId] = useState<string | null>(null);
     const [showNotifs, setShowNotifs] = useState(false);
+    const [showDistributor, setShowDistributor] = useState(false);
 
     const userObj = currentUser ? users[currentUser] : null;
     const isAdmin = Boolean(currentUser && users[currentUser]?.role === 'admin');
@@ -135,8 +137,20 @@ export default function Dashboard() {
                     <button
                         onClick={handleGeneratePlan}
                         className="flex items-center justify-center w-9 h-9 bg-indigo-600 active:bg-indigo-700 hover:bg-indigo-500 text-white rounded-full shadow-md transition-all active:scale-95"
+                        title="Wochenplan zufällig generieren"
                     >
                         <Sparkles size={18} />
+                    </button>
+                )}
+
+                {/* Admin-only: Manuell verteilen */}
+                {isAdmin && (
+                    <button
+                        onClick={() => setShowDistributor(true)}
+                        className="flex items-center justify-center w-9 h-9 bg-violet-600 active:bg-violet-700 hover:bg-violet-500 text-white rounded-full shadow-md transition-all active:scale-95"
+                        title="Aufgaben manuell verteilen"
+                    >
+                        <LayoutList size={18} />
                     </button>
                 )}
             </div>
@@ -153,6 +167,7 @@ export default function Dashboard() {
                 />
             )}
             {showNotifs && <NotificationCenterModal onClose={() => setShowNotifs(false)} />}
+            {showDistributor && <ManualTaskDistributorModal onClose={() => setShowDistributor(false)} />}
 
             {/* Swap Mode Banner */}
             {swapSourceId && (
@@ -188,6 +203,23 @@ export default function Dashboard() {
                         <CalendarDays size={16} />
                         {viewMode === 'week' ? 'Ganze Woche' : 'Tagesansicht'}
                     </button>
+
+                    {/* Streak pills for all non-admin users */}
+                    <div className="flex items-center gap-1.5 ml-auto">
+                        {Object.values(users)
+                            .filter(u => (u.streak || 0) > 0)
+                            .map(u => (
+                                <div
+                                    key={u.id}
+                                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-black"
+                                    style={{ backgroundColor: `${u.color}20`, color: u.color }}
+                                    title={`${u.name}: ${u.streak} Tage Streak (Best: ${u.longestStreak})`}
+                                >
+                                    <Flame size={12} /> {u.streak}
+                                </div>
+                            ))
+                        }
+                    </div>
                 </div>
 
                 {/* Day Selector (today mode) */}

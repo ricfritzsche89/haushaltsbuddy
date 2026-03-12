@@ -1,18 +1,20 @@
 import { useState } from 'react';
-import { ShieldAlert, Database, Smartphone, Bell, Package } from 'lucide-react';
+import { ShieldAlert, Database, Smartphone, Bell, Package, TrendingUp } from 'lucide-react';
 import TaskDatabase from '../components/TaskDatabase';
 import AdminShopView from '../components/AdminShopView';
 import AdminPenaltyCard from '../components/AdminPenaltyCard';
 import AdminPushMessageCard from '../components/AdminPushMessageCard';
 import AdminSystemCard from '../components/AdminSystemCard';
+import WeeklyReportModal from '../components/WeeklyReportModal';
 
-type Tab = 'tasks' | 'penalty' | 'message' | 'shop' | 'system';
+type Tab = 'tasks' | 'penalty' | 'message' | 'shop' | 'system' | 'report';
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: 'tasks', label: 'Aufgaben', icon: <Database size={18} /> },
     { id: 'penalty', label: 'Sperre', icon: <Smartphone size={18} /> },
     { id: 'message', label: 'Nachricht', icon: <Bell size={18} /> },
     { id: 'shop', label: 'Shop', icon: <Package size={18} /> },
+    { id: 'report', label: 'Bericht', icon: <TrendingUp size={18} /> },
     { id: 'system', label: 'System', icon: <ShieldAlert size={18} /> },
 ];
 
@@ -43,7 +45,7 @@ export default function Admin() {
                             : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                             }`}
                     >
-                        {React.cloneElement(tab.icon as React.ReactElement, { size: 14 })}
+                        <span className="[&>svg]:w-3.5 [&>svg]:h-3.5">{tab.icon}</span>
                         {tab.label}
                     </button>
                 ))}
@@ -56,6 +58,7 @@ export default function Admin() {
                 {activeTab === 'message' && <AdminPushMessageCard />}
                 {activeTab === 'shop' && <AdminShopView />}
                 {activeTab === 'system' && <AdminSystemCard />}
+                {activeTab === 'report' && <WeeklyReportModal onClose={() => setActiveTab('tasks')} />}
             </div>
         </div>
     );

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
+import { publishEvent } from '../services/syncService';
 import { 
   Plus, 
   Trash2, 
@@ -21,12 +22,20 @@ export default function AdminInvestmentManager() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    addInvestmentEvent({
+    const newEventData = {
       title: newTitle,
       description: newDesc,
       emoji: newEmoji,
       type: newType,
-    });
+    };
+    addInvestmentEvent(newEventData);
+
+    // Get the newly created event for sync
+    const lastEvent = useStore.getState().investmentEvents[0];
+    if (lastEvent) {
+      publishEvent('INVESTMENT_EVENT_ADDED', lastEvent);
+    }
+
     toast.success('Ereignis erstellt!');
     setShowAddModal(false);
     setNewTitle('');
@@ -86,7 +95,10 @@ export default function AdminInvestmentManager() {
                   </div>
                   <button 
                     onClick={() => {
-                      if (window.confirm('Ereignis wirklich löschen?')) deleteInvestmentEvent(event.id);
+                      if (window.confirm('Ereignis wirklich löschen?')) {
+                        deleteInvestmentEvent(event.id);
+                        publishEvent('INVESTMENT_EVENT_DELETED', { eventId: event.id });
+                      }
                     }}
                     className="p-2 text-slate-300 hover:text-rose-500 transition-colors"
                   >

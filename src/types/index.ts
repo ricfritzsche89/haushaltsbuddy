@@ -18,6 +18,9 @@ export interface UserProfile {
   activeTitle?: string;
   unlockedTitles?: string[];
   balance: number;
+  streak?: number;         // current streak in days
+  longestStreak?: number;  // all-time best streak
+  lastStreakDate?: string;  // ISO date string YYYY-MM-DD of last day tasks were completed
 }
 
 // --- Titel-System ---
