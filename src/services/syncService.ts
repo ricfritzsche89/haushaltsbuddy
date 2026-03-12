@@ -80,8 +80,6 @@ export function subscribeToMasterStateChanges() {
 export async function saveMasterState() {
     try {
         const state = useStore.getState();
-        // We only save if we actually have tasks (to prevent wiping the master state on accident)
-        if (state.tasks.length === 0) return;
 
         // Strip massive base64 image strings from the entire state before saving
         const cleanedState = JSON.parse(JSON.stringify(state, (key, value) => {

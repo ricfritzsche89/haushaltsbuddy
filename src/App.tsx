@@ -20,16 +20,17 @@ import Layout from './components/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
-  const { currentUser, users, checkUserTitles, migrateTylerToTayler } = useStore();
+  const { currentUser, users, checkUserTitles, migrateTylerToTayler, ensureAdminRoles } = useStore();
   useReminderSystem();
 
   // Ensure user has their base titles (0 XP) unlocked
   useEffect(() => {
     migrateTylerToTayler();
+    ensureAdminRoles();
     if (currentUser) {
       checkUserTitles(currentUser);
     }
-  }, [currentUser, checkUserTitles, migrateTylerToTayler]);
+  }, [currentUser, checkUserTitles, migrateTylerToTayler, ensureAdminRoles]);
 
   // ── Core sync: load master state + start event listener + subscribe to master state changes
   const unsubMasterRef = useRef<(() => void) | null>(null);

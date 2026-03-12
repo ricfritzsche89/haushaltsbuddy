@@ -83,16 +83,16 @@ export default function Dashboard() {
     return (
         <div className="h-full flex flex-col relative pt-4 overflow-hidden">
 
-            {/* Top-right action buttons - Shifted 15px left per User request */}
-            <div className="absolute top-4 right-[31px] z-20 flex items-center gap-2">
+            {/* Top-right action buttons - Adjusted for overlap */}
+            <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5 sm:gap-2">
                 {/* Spardose / Balance Pill */}
                 {currentUser && (
                     <Link
                         to={isAdmin ? "/admin/savings" : "/savings"}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 rounded-2xl shadow-sm transition-all active:scale-95 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 group"
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 rounded-2xl shadow-sm transition-all active:scale-95 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 group"
                     >
-                        <PiggyBank size={16} className="text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform" />
-                        <span className="text-sm font-black text-indigo-700 dark:text-indigo-300">
+                        <PiggyBank size={14} className="text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform" />
+                        <span className="text-xs font-black text-indigo-700 dark:text-indigo-300">
                             {(users[currentUser]?.balance || 0).toFixed(2)}€
                         </span>
                     </Link>
@@ -185,8 +185,8 @@ export default function Dashboard() {
             <div className="px-4">
                 <div className={`flex flex-col mb-4 flex-shrink-0 ${swapSourceId ? 'mt-8' : ''}`}>
                     <div>
-                        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight ml-2">Wochenplan</h1>
-                        <p className="text-slate-500 dark:text-slate-400 font-medium ml-2">Diese Woche zu erledigen</p>
+                        <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight ml-2">Wochenplan</h1>
+                        <p className="text-slate-500 dark:text-slate-400 font-medium ml-2 text-sm">Diese Woche zu erledigen</p>
                     </div>
                 </div>
 

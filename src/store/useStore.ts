@@ -93,6 +93,7 @@ interface AppState {
     resetAllPins: () => void;
     resetBanking: () => void;
     recordDayCompletion: (userId: UserId) => void;
+    ensureAdminRoles: () => void;
     // This function allows replacing the entire state when a full sync from another device happens
     replaceState: (newState: Partial<AppState>) => void;
 }
@@ -793,6 +794,20 @@ export const useStore = create<AppState>()(
                         },
                     },
                 };
+            }),
+
+            ensureAdminRoles: () => set((state) => {
+                const updatedUsers = { ...state.users };
+                let changed = false;
+                if (updatedUsers['Ric'] && updatedUsers['Ric'].role !== 'admin') {
+                    updatedUsers['Ric'] = { ...updatedUsers['Ric'], role: 'admin' };
+                    changed = true;
+                }
+                if (updatedUsers['Nadine'] && updatedUsers['Nadine'].role !== 'admin') {
+                    updatedUsers['Nadine'] = { ...updatedUsers['Nadine'], role: 'admin' };
+                    changed = true;
+                }
+                return changed ? { users: updatedUsers } : {};
             }),
 
             replaceState: (newState) => set((state) => ({

@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useStore } from '../store/useStore';
 import { publishEvent } from '../services/syncService';
 import type { DayOfWeek, UserId, Task, TaskTemplate } from '../types';
-import { X, Trash2, Plus, ChevronRight, ChevronLeft, Search, Check } from 'lucide-react';
+import { X, Trash2, Plus, ChevronRight, ChevronLeft, Search, Check, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const DAYS: DayOfWeek[] = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
@@ -216,8 +216,14 @@ export default function ManualTaskDistributorModal({ onClose }: Props) {
                                 value={search}
                                 onChange={e => { setSearch(e.target.value); setShowDropdown(true); }}
                                 onFocus={() => setShowDropdown(true)}
-                                className="w-full pl-9 pr-4 py-3 bg-slate-100 dark:bg-slate-800 rounded-2xl text-sm font-semibold text-slate-800 dark:text-white placeholder-slate-400 border-none outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full pl-9 pr-12 py-3 bg-slate-100 dark:bg-slate-800 rounded-2xl text-sm font-semibold text-slate-800 dark:text-white placeholder-slate-400 border-none outline-none focus:ring-2 focus:ring-indigo-500"
                             />
+                            <button 
+                                onClick={() => setShowDropdown(!showDropdown)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                            >
+                                <ChevronDown size={20} className={`transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`} />
+                            </button>
                         </div>
 
                         {showDropdown && (
