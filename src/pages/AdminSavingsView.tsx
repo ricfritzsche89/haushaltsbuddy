@@ -84,8 +84,9 @@ export default function AdminSavingsView() {
           </button>
         </div>
       </div>
+    </div>
 
-      {activeTab === 'banking' ? (
+    {activeTab === 'banking' ? (
         <>
           {/* Übersicht Kinder */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
