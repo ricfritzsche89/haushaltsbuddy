@@ -100,10 +100,10 @@ export default function ManualTaskDistributorModal({ onClose }: Props) {
     const user = users[selectedUser];
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center p-0 sm:items-center sm:p-4">
+        <div className="fixed inset-0 z-[100] flex justify-center items-start">
             <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onClick={onClose} />
 
-            <div className="relative bg-white dark:bg-slate-900 w-full sm:max-w-lg rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-300 max-h-[95vh] flex flex-col">
+            <div className="relative bg-white dark:bg-slate-900 w-full lg:max-w-5xl sm:max-w-3xl h-full flex flex-col shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
 
                 {/* Header */}
                 <div className="bg-gradient-to-r from-indigo-600 to-violet-600 p-5 text-white flex-shrink-0">
