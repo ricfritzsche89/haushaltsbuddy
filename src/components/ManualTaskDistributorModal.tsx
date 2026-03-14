@@ -168,7 +168,51 @@ export default function ManualTaskDistributorModal({ onClose }: Props) {
                 </div>
 
                 {/* Body */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                    {/* Task Search / Dropdown - MOVED TO TOP */}
+                    <div className="relative">
+                        <label className="text-xs font-black text-slate-400 uppercase tracking-wider mb-2 block">Aufgabe hinzufügen</label>
+                        <div className="relative">
+                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <input
+                                type="text"
+                                placeholder="Aufgabe suchen..."
+                                value={search}
+                                onChange={e => { setSearch(e.target.value); setShowDropdown(true); }}
+                                onFocus={() => setShowDropdown(true)}
+                                className="w-full pl-9 pr-12 py-3 bg-slate-100 dark:bg-slate-800 rounded-2xl text-sm font-semibold text-slate-800 dark:text-white placeholder-slate-400 border-none outline-none focus:ring-2 focus:ring-indigo-500"
+                            />
+                            <button 
+                                onClick={() => setShowDropdown(!showDropdown)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                            >
+                                <ChevronDown size={20} className={`transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`} />
+                            </button>
+                        </div>
+
+                        {showDropdown && (
+                            <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 z-[50] max-h-48 overflow-y-auto">
+                                {filteredTemplates.length === 0 ? (
+                                    <p className="text-center text-sm text-slate-400 py-4">Keine Treffer</p>
+                                ) : (
+                                    filteredTemplates.map(t => (
+                                        <button
+                                            key={t.id}
+                                            onMouseDown={() => handleAddTask(t)}
+                                            className="w-full flex items-center justify-between px-4 py-3 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors text-left border-b border-slate-50 dark:border-slate-700 last:border-0"
+                                        >
+                                            <div>
+                                                <p className="text-sm font-bold text-slate-800 dark:text-white">{t.titel}</p>
+                                                <p className="text-xs text-slate-400">{t.raum} · {t.schwierigkeitspunkte} Punkte · {t.xpBelohnung} XP</p>
+                                            </div>
+                                            <Plus size={16} className="text-indigo-500 flex-shrink-0" />
+                                        </button>
+                                    ))
+                                )}
+                            </div>
+                        )}
+                    </div>
+
                     {/* Current Day Tasks */}
                     <div>
                         <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-2">
@@ -201,50 +245,6 @@ export default function ManualTaskDistributorModal({ onClose }: Props) {
                                         </button>
                                     </div>
                                 ))}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Task Search / Dropdown */}
-                    <div className="relative">
-                        <label className="text-xs font-black text-slate-400 uppercase tracking-wider mb-2 block">Aufgabe hinzufügen</label>
-                        <div className="relative">
-                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                            <input
-                                type="text"
-                                placeholder="Aufgabe suchen..."
-                                value={search}
-                                onChange={e => { setSearch(e.target.value); setShowDropdown(true); }}
-                                onFocus={() => setShowDropdown(true)}
-                                className="w-full pl-9 pr-12 py-3 bg-slate-100 dark:bg-slate-800 rounded-2xl text-sm font-semibold text-slate-800 dark:text-white placeholder-slate-400 border-none outline-none focus:ring-2 focus:ring-indigo-500"
-                            />
-                            <button 
-                                onClick={() => setShowDropdown(!showDropdown)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
-                            >
-                                <ChevronDown size={20} className={`transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`} />
-                            </button>
-                        </div>
-
-                        {showDropdown && (
-                            <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 z-10 max-h-48 overflow-y-auto">
-                                {filteredTemplates.length === 0 ? (
-                                    <p className="text-center text-sm text-slate-400 py-4">Keine Treffer</p>
-                                ) : (
-                                    filteredTemplates.map(t => (
-                                        <button
-                                            key={t.id}
-                                            onMouseDown={() => handleAddTask(t)}
-                                            className="w-full flex items-center justify-between px-4 py-3 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors text-left border-b border-slate-50 dark:border-slate-700 last:border-0"
-                                        >
-                                            <div>
-                                                <p className="text-sm font-bold text-slate-800 dark:text-white">{t.titel}</p>
-                                                <p className="text-xs text-slate-400">{t.raum} · {t.schwierigkeitspunkte} Punkte · {t.xpBelohnung} XP</p>
-                                            </div>
-                                            <Plus size={16} className="text-indigo-500 flex-shrink-0" />
-                                        </button>
-                                    ))
-                                )}
                             </div>
                         )}
                     </div>
